@@ -1,2 +1,5 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.9.0"}}}
+ :deps {org.clojure/clojure {:mvn/version "1.9.0"}}
+ :aliases {:check {:extra-deps {athos/clj-check {:git/url "https://github.com/athos/clj-check.git"
+                                                 :sha "dde919d1b10af4ee18944a212d914654302c5838"}}
+                   :main-opts ["-m" "clj-check.check"]}}}
