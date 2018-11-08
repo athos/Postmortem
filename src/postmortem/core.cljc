@@ -51,6 +51,10 @@
                   {:time (System/nanoTime)})
                 ~strategy))))
 
+(defn except [& ids]
+  (let [ids (set ids)]
+    (complement ids)))
+
 (defn all []
   (strategy/all))
 
