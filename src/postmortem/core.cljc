@@ -5,9 +5,12 @@
 (defn logs []
   @logs*)
 
-(defn clear! []
-  (reset! logs* {})
-  nil)
+(defn clear!
+  ([& ids]
+   (if (empty? ids)
+     (reset! logs* {})
+     (apply swap! logs* dissoc ids))
+   nil))
 
 (defn enqueue! [id location vals]
   (swap! logs* update id
