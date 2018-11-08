@@ -1,6 +1,6 @@
 (ns postmortem.core
   (:refer-clojure :exclude [when first last])
-  (:require [clojure.core :as cc]))
+  (:require [postmortem.strategy :as strategy]))
 
 (def ^:private logs* (atom {}))
 
@@ -15,12 +15,6 @@
      (reset! logs* {})
      (apply swap! logs* dissoc ids))
    nil))
-
-(defprotocol QueueingStrategy
-  (-enqueue [this items vals]))
-
-(defn enqueue [items vals]
-  (conj items vals))
 
 (defn enqueue! [id location vals strategy]
   (swap! logs* update id
@@ -58,44 +52,20 @@
                 ~strategy))))
 
 (defn all []
-  (reify QueueingStrategy
-    (-enqueue [this items vals]
-      (enqueue items vals))))
+  (strategy/all))
 
 (defn when
   ([pred] (when pred (all)))
   ([pred strategy]
-   (reify QueueingStrategy
-     (-enqueue [this items vals]
-       (if (pred vals)
-         (-enqueue strategy items vals)
-         items)))))
+   (strategy/when pred strategy)))
 
 (defn first
   ([] (first 1))
-  ([n]
-   (reify QueueingStrategy
-     (-enqueue [this items vals]
-       (if (< (count items) n)
-         (enqueue items vals)
-         items)))))
+  ([n] (strategy/first n)))
 
 (defn last
   ([] (last 1))
-  ([n]
-   (reify QueueingStrategy
-     (-enqueue [this items vals]
-       (let [items (or (not-empty items) clojure.lang.PersistentQueue/EMPTY)]
-         (cond-> (enqueue items vals)
-           (>= (count items) n)
-           pop))))))
+  ([n] (strategy/last n)))
 
 (defn every [n]
-  (let [i (volatile! 0)]
-    (reify QueueingStrategy
-      (-enqueue [this items vals]
-        (let [ret (if (= @i 0)
-                    (enqueue items vals)
-                    items)]
-          (vswap! i (fn [i] (rem (inc i) n)))
-          ret)))))
+  (strategy/every n))
