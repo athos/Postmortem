@@ -134,7 +134,7 @@
                              (:column location))
                         (pad-right max-location))
                  \| (pad-right (str id) max-id)
-                 \| (pad-right (str (:form (meta strategy) \-))
+                 \| (pad-right (str (:form (meta strategy) " -"))
                                max-strategy)
                  \| (pad-left (str (count items)) max-count) \|))
       (hline))))
