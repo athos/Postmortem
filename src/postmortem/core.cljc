@@ -77,3 +77,55 @@
 
 (defn every [n]
   (strategy/every n))
+
+(defn- times [n c]
+  (str/join (repeat n c)))
+
+(defn- pad-left [s n]
+  (str (times (- n (count s)) \space) s))
+
+(defn- pad-right [s n]
+  (str s (times (- n (count s)) \space)))
+
+(defn- ndigits [n]
+  (count (str n)))
+
+(defn- make-hline [location-width id-width count-width]
+  (fn []
+    (as-> [location-width id-width count-width] <>
+      (map #(str (times (+ % 2) \-)) <>)
+      (str/join \+ <>)
+      (str \+ <> \+)
+      (println <>))))
+
+(defn- header [location-width id-width count-width]
+  (println \| (pad-right "Location" location-width)
+           \| (pad-right "ID" id-width)
+           \| (pad-right "Items" count-width) \|))
+
+(defn list []
+  (cc/when (seq @logs*)
+    (let [logs (sort-by (fn [[_ {:keys [location]}]]
+                          [(:file location) (:line location) (:column location)])
+                        @logs*)
+          max-location (->> logs
+                            (map (fn [[_ {{:keys [file line column]} :location}]]
+                                   (+ (count file) (ndigits line) (ndigits column))))
+                            (apply max 8)
+                            (+ 2))
+          max-id (apply max 2 (map (comp ndigits key) logs))
+          max-count (->> logs
+                         (map #(ndigits (count (:items (val %)))))
+                         (apply max 5))
+          hline (make-hline max-location max-id max-count)]
+      (hline)
+      (header max-location max-id max-count)
+      (hline)
+      (doseq [[id {:keys [location items]}] logs]
+        (println \| (-> (str (:file location) \:
+                             (:line location) \:
+                             (:column location))
+                        (pad-right max-location))
+                 \| (pad-right (str id) max-id)
+                 \| (pad-left (str (count items)) max-count) \|))
+      (hline))))
