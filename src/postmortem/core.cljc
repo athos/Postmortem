@@ -1,13 +1,17 @@
 (ns postmortem.core
-  (:refer-clojure :exclude [when first last])
-  (:require [postmortem.strategy :as strategy]))
+  (:refer-clojure :exclude [list when first last])
+  (:require [clojure.core :as cc]
+            [clojure.string :as str]
+            [postmortem.strategy :as strategy]))
 
 (def ^:private logs* (atom {}))
 
-(defn logs []
-  (reduce-kv (fn [m k v] (assoc m k (update v :items vec)))
-             {}
-             @logs*))
+(defn logs
+  ([]
+   (reduce-kv (fn [m k v] (assoc m k (vec (:items v))))
+              {}
+              @logs*))
+  ([id] (get (logs) id)))
 
 (defn clear!
   ([& ids]
