@@ -6,11 +6,21 @@
 
 (def ^:private logs* (atom {}))
 
+(defn- complete-logs [logs]
+  (reduce-kv (fn [m id entry]
+               (if (:completed? entry)
+                 m
+                 (let [entry' (-> entry
+                                  (update :items (:fn entry))
+                                  (assoc :completed? true))]
+                   (assoc m id entry'))))
+             logs
+             logs))
+
 (defn logs
   ([]
-   (reduce-kv (fn [m k v] (assoc m k (vec (:items v))))
-              {}
-              @logs*))
+   (swap! logs* complete-logs)
+   (reduce-kv (fn [m k v] (assoc m k (:items v))) {} @logs*))
   ([id] (get (logs) id)))
 
 (defn clear!
@@ -20,43 +30,40 @@
      (apply swap! logs* dissoc ids))
    nil))
 
-(declare all)
+(defn- xf->rf [xform]
+  (let [rf (xform conj)
+        finished? (volatile! false)]
+    (fn
+      ([] (rf))
+      ([result] (rf result))
+      ([items item]
+       (if @finished?
+         items
+         (let [ret (rf items item)]
+           (when (reduced? ret)
+             (vreset! finished? true))
+           (unreduced ret)))))))
 
-(defn enqueue! [id location vals strategy]
+(defn enqueue! [id location xform-form xform item]
   (swap! logs* update id
          (fn [entry]
-           (let [e (cond-> entry
-                     (nil? entry)
-                     (assoc :location location
-                            :strategy (or strategy (all))))]
-             (update e :items (fnil #(strategy/-enqueue (:strategy e) % vals) []))))))
+           (let [e (if (nil? entry)
+                     (let [rf (xf->rf xform)]
+                       (assoc entry
+                              :location location :items (rf)
+                              :fn rf :completed? false))
+                     entry)]
+             (update e :items (:fn e) item)))))
 
-(defn filter-vals [vals targets]
-  (cond (nil? targets) vals
-        (coll? targets)
-        (if (empty? targets)
-          vals
-          (select-keys vals targets))
-        :else (into {} (filter (comp targets key)) vals)))
-
-(defmacro checkpoint
+(defmacro logpoint
   ([id]
-   (with-meta `(checkpoint ~id nil) (meta &form)))
-  ([id targets]
-   (with-meta `(checkpoint ~id ~targets nil) (meta &form)))
-  ([id targets strategy]
+   (with-meta `(logpoint ~id identity) (meta &form)))
+  ([id xform]
    (let [location {:file *file*
                    :line (:line (meta &form))
                    :column (:column (meta &form))}
-         vals (->> &env
-                   (map (fn [[k v]] `[~(keyword k) ~k]))
-                   (into {}))]
-     `(enqueue! ~id ~location
-                (with-meta (filter-vals ~vals ~targets)
-                  {:time (System/nanoTime)})
-                ~(cc/when strategy
-                   `(with-meta ~strategy
-                      {:form '~strategy}))))))
+         vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
+     `(enqueue! ~id ~location '~xform ~xform ~vals))))
 
 (defn except [& ids]
   (let [ids (set ids)]
