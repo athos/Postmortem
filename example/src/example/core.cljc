@@ -29,3 +29,12 @@
   (if (= n 0)
     false
     (my-even? (dec n))))
+
+(comment
+
+  (fib' 5)
+  ;=> 5
+  (pm/logs :fib2)
+  ;=> [{:a 0, :b 1} {:a 1, :b 1} {:a 1, :b 2} {:a 2, :b 3} {:a 3, :b 5}]
+
+  )
