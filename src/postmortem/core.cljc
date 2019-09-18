@@ -1,8 +1,6 @@
 (ns postmortem.core
-  (:refer-clojure :exclude [list when first last])
-  (:require [clojure.core :as cc]
-            [clojure.string :as str]
-            [postmortem.strategy :as strategy]))
+  (:refer-clojure :exclude [list])
+  (:require [clojure.string :as str]))
 
 (def ^:private logs* (atom {}))
 
@@ -65,28 +63,6 @@
          vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
      `(enqueue! ~id ~location '~xform ~xform ~vals))))
 
-(defn except [& ids]
-  (let [ids (set ids)]
-    (complement ids)))
-
-(defn all []
-  (strategy/all))
-
-(defn when
-  ([pred] (when pred (all)))
-  ([pred strategy]
-   (strategy/when pred strategy)))
-
-(defn first
-  ([] (first 1))
-  ([n] (strategy/first n)))
-
-(defn last
-  ([] (last 1))
-  ([n] (strategy/last n)))
-
-(defn every [n]
-  (strategy/every n))
 
 (defn- times [n c]
   (str/join (repeat n c)))
@@ -115,7 +91,7 @@
            \| (pad-right "Items" count-width) \|))
 
 (defn list []
-  (cc/when (seq @logs*)
+  (when (seq @logs*)
     (let [logs (sort-by (fn [[_ {:keys [location]}]]
                           [(:file location) (:line location) (:column location)])
                         @logs*)
