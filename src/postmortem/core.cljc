@@ -63,6 +63,9 @@
          vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
      `(enqueue! ~id ~location '~xform ~xform ~vals))))
 
+(defmacro lp
+  ([id] (with-meta `(logpoint ~id) (meta &form)))
+  ([id xform] (with-meta `(logpoint ~id ~xform) (meta &form))))
 
 (defn- times [n c]
   (str/join (repeat n c)))
