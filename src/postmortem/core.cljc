@@ -4,13 +4,18 @@
 
 (def ^:private logs* (atom {}))
 
+(defn- complete-log-entry [entry]
+  (if (:completed? entry)
+    entry
+    (-> entry
+        (update :items (:fn entry))
+        (assoc :completed? true))))
+
 (defn- complete-logs [logs]
   (reduce-kv (fn [m id entry]
-               (if (:completed? entry)
-                 m
-                 (let [entry' (-> entry
-                                  (update :items (:fn entry))
-                                  (assoc :completed? true))]
+               (let [entry' (complete-log-entry entry)]
+                 (if (identical? entry entry')
+                   m
                    (assoc m id entry'))))
              logs
              logs))
@@ -19,7 +24,9 @@
   ([]
    (swap! logs* complete-logs)
    (reduce-kv (fn [m k v] (assoc m k (:items v))) {} @logs*))
-  ([id] (get (logs) id)))
+  ([id]
+   (swap! logs* update id complete-log-entry)
+   (:items (get @logs* id))))
 
 (defn clear!
   ([& ids]
@@ -42,26 +49,34 @@
              (vreset! finished? true))
            (unreduced ret)))))))
 
-(defn enqueue! [id location xform-form xform item]
+(defn enqueue! [id location xform item]
   (swap! logs* update id
          (fn [entry]
-           (let [e (if (nil? entry)
-                     (let [rf (xf->rf xform)]
-                       (assoc entry
-                              :location location :items (rf)
-                              :fn rf :completed? false))
-                     entry)]
-             (update e :items (:fn e) item)))))
+           (as-> entry e
+             (if (nil? e)
+               (let [rf (xf->rf xform)]
+                 (assoc e
+                        :location location :items (rf)
+                        :fn rf :completed? false))
+               e)
+             (update e :items (:fn e) item)
+             (if (identical? (:items entry) (:items e))
+               e
+               (assoc e :completed? false))))))
+
+(defn make-location [{:keys [line column]}]
+  {:file *file*
+   :line line
+   :column column})
 
 (defmacro logpoint
   ([id]
    (with-meta `(logpoint ~id identity) (meta &form)))
   ([id xform]
-   (let [location {:file *file*
-                   :line (:line (meta &form))
-                   :column (:column (meta &form))}
+   (assert (keyword? id) "ID must be keyword")
+   (let [location (make-location (meta &form))
          vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
-     `(enqueue! ~id ~location '~xform ~xform ~vals))))
+     `(enqueue! ~id ~location ~xform ~vals))))
 
 (defmacro lp
   ([id] (with-meta `(logpoint ~id) (meta &form)))
