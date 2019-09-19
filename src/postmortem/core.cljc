@@ -82,6 +82,19 @@
   ([id] (with-meta `(logpoint ~id) (meta &form)))
   ([id xform] (with-meta `(logpoint ~id ~xform) (meta &form))))
 
+(defmacro spy>
+  ([x id] `(spy> ~x ~id identity))
+  ([x id xform]
+   (assert (keyword? id) "ID must be keyword")
+   (let [location (make-location (meta &form))]
+     `(let [x# ~x]
+        (enqueue! ~id ~location ~xform x#)
+        x#))))
+
+(defmacro spy>>
+  ([id x] `(spy>> ~id identity ~x))
+  ([id xform x] `(spy> ~x ~id ~xform)))
+
 (defn- times [n c]
   (str/join (repeat n c)))
 
