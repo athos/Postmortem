@@ -1,4 +1,6 @@
-(ns postmortem.core)
+(ns postmortem.core
+  (:refer-clojure :exclude [reset!])
+  (:require [clojure.core :as c]))
 
 (def ^:private logs* (atom {}))
 
@@ -26,10 +28,10 @@
    (swap! logs* update id complete-log-entry)
    (:items (get @logs* id))))
 
-(defn clear!
+(defn reset!
   ([& ids]
    (if (empty? ids)
-     (reset! logs* {})
+     (c/reset! logs* {})
      (apply swap! logs* dissoc ids))
    nil))
 
