@@ -1,87 +1,76 @@
 (ns postmortem.core
   (:refer-clojure :exclude [reset!])
-  (:require [clojure.core :as c]))
+  (:require [postmortem.protocols :as proto]
+            [postmortem.session :as session]))
 
-(def ^:private logs* (atom {}))
+(defn make-session
+  ([] (make-session nil))
+  ([name]
+   (session/->Session name (atom {}))))
 
-(defn- complete-log-entry [entry]
-  (if (:completed? entry)
-    entry
-    (-> entry
-        (update :items (:fn entry))
-        (assoc :completed? true))))
+(defn session-name [session]
+  (proto/-name session))
 
-(defn- complete-logs [logs]
-  (reduce-kv (fn [m id entry]
-               (let [entry' (complete-log-entry entry)]
-                 (if (identical? entry entry')
-                   m
-                   (assoc m id entry'))))
-             logs
-             logs))
+(def ^:private ^:dynamic *default-session* (make-session))
 
-(defn logs
-  ([]
-   (swap! logs* complete-logs)
-   (reduce-kv (fn [m k v] (assoc m k (:items v))) {} @logs*))
-  ([id]
-   (swap! logs* update id complete-log-entry)
-   (:items (get @logs* id))))
+(defn default-session []
+  *default-session*)
+
+(defn set-default-session! [session]
+  (alter-var-root #'*default-session* (constantly session)))
+
+(defmacro with-session [session & body]
+  `(binding [*default-session* ~session]
+     ~@body))
+
+(defn log-for
+  ([id] (log-for (default-session) id))
+  ([session id]
+   (get (proto/-logs session #{id}) id)))
+
+(defn logs-for
+  ([ids] (logs (default-session) ids))
+  ([session ids]
+   (proto/-logs session (set ids))))
+
+(defn all-logs
+  ([] (all-logs (default-session)))
+  ([session]
+   (proto/-logs session)))
 
 (defn reset!
-  ([& ids]
-   (if (empty? ids)
-     (c/reset! logs* {})
-     (apply swap! logs* dissoc ids))
+  ([ids] (reset! (default-session) ids))
+  ([session ids]
+   (proto/-reset! session (set ids))
    nil))
 
-(defn- xf->rf [xform]
-  (let [rf (xform conj)
-        finished? (volatile! false)]
-    (fn
-      ([] (rf))
-      ([result] (rf result))
-      ([items item]
-       (if @finished?
-         items
-         (let [ret (rf items item)]
-           (when (reduced? ret)
-             (vreset! finished? true))
-           (unreduced ret)))))))
-
-(defn enqueue! [id xform item]
-  (swap! logs* update id
-         (fn [entry]
-           (as-> entry e
-             (if (nil? e)
-               (let [rf (xf->rf xform)]
-                 (assoc e :fn rf :completed? false :items (rf)))
-               e)
-             (update e :items (:fn e) item)
-             (if (identical? (:items entry) (:items e))
-               e
-               (assoc e :completed? false))))))
+(defn reset-all!
+  ([] (reset-all! (default-session)))
+  ([session]
+   (proto/-reset! session)
+   nil))
 
 (defmacro logpoint
-  ([id]
-   (with-meta `(logpoint ~id identity) (meta &form)))
-  ([id xform]
+  ([id] `(logpoint ~id identity))
+  ([id xform] `(logpoint (default-session) ~id ~xform))
+  ([session id xform]
    (assert (keyword? id) "ID must be keyword")
    (let [vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
-     `(enqueue! ~id ~xform ~vals))))
+     `(proto/-add-item! ~session  ~id ~xform ~vals))))
 
-(defmacro lp
-  ([id] (with-meta `(logpoint ~id) (meta &form)))
-  ([id xform] (with-meta `(logpoint ~id ~xform) (meta &form))))
+(defmacro ^{:arglists '([id] [id xform] [session id xform])} lp [& args]
+  `(logpoint ~@args))
 
 (defmacro spy>
   ([x id] `(spy> ~x ~id identity))
-  ([x id xform]
+  ([x id xform] `(spy> ~x (default-session) ~id ~xform))
+  ([x session id xform]
    (assert (keyword? id) "ID must be keyword")
    `(let [x# ~x]
-      (enqueue! ~id ~xform x#)
+      (proto/-add-item! ~session ~id ~xform x#)
       x#)))
 
 (defmacro spy>>
   ([id x] `(spy>> ~id identity ~x))
-  ([id xform x] `(spy> ~x ~id ~xform)))
+  ([id xform x] `(spy>> (default-session) ~id ~xform ~x))
+  ([session id xform x] `(spy> ~x ~session ~id ~xform)))
