@@ -49,34 +49,26 @@
              (vreset! finished? true))
            (unreduced ret)))))))
 
-(defn enqueue! [id location xform item]
+(defn enqueue! [id xform item]
   (swap! logs* update id
          (fn [entry]
            (as-> entry e
              (if (nil? e)
                (let [rf (xf->rf xform)]
-                 (assoc e
-                        :location location :items (rf)
-                        :fn rf :completed? false))
+                 (assoc e :fn rf :completed? false :items (rf)))
                e)
              (update e :items (:fn e) item)
              (if (identical? (:items entry) (:items e))
                e
                (assoc e :completed? false))))))
 
-(defn make-location [{:keys [line column]}]
-  {:file *file*
-   :line line
-   :column column})
-
 (defmacro logpoint
   ([id]
    (with-meta `(logpoint ~id identity) (meta &form)))
   ([id xform]
    (assert (keyword? id) "ID must be keyword")
-   (let [location (make-location (meta &form))
-         vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
-     `(enqueue! ~id ~location ~xform ~vals))))
+   (let [vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
+     `(enqueue! ~id ~xform ~vals))))
 
 (defmacro lp
   ([id] (with-meta `(logpoint ~id) (meta &form)))
@@ -86,10 +78,9 @@
   ([x id] `(spy> ~x ~id identity))
   ([x id xform]
    (assert (keyword? id) "ID must be keyword")
-   (let [location (make-location (meta &form))]
-     `(let [x# ~x]
-        (enqueue! ~id ~location ~xform x#)
-        x#))))
+   `(let [x# ~x]
+      (enqueue! ~id ~xform x#)
+      x#)))
 
 (defmacro spy>>
   ([id x] `(spy>> ~id identity ~x))
