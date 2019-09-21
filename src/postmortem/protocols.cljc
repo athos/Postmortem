@@ -1,4 +1,5 @@
-(ns postmortem.protocols)
+(ns postmortem.protocols
+  #?(:cljs (:refer-clojure :exclude [-name -reset!])))
 
 (defprotocol ISession
   (-name [this]))
