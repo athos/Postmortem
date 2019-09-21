@@ -1,6 +1,7 @@
 (ns postmortem.core-test
-  (:require [clojure.test :refer [deftest is testing]]
-            [postmortem.core :as pm :refer [lp spy> spy>>]]))
+  (:require [clojure.test :refer [deftest is are]]
+            [postmortem.core :as pm :refer [lp spy> spy>>]]
+            [postmortem.xforms :as xf]))
 
 (defn add [a b]
   (lp :add)
@@ -67,3 +68,41 @@
 
   (pm/reset-all!)
   (is (= {} (pm/all-logs))))
+
+(deftest ^:eftest/synchronized transducers-test
+  (are [key xform expected]
+      (let [f (fn [n]
+                (loop [n n]
+                  (lp key xform)
+                  (if (= n 0)
+                    n
+                    (recur (dec n)))))]
+        (f 10)
+        (is (= expected (pm/log-for key))))
+
+    :f1 identity [{:n 10} {:n 9} {:n 8} {:n 7} {:n 6}
+                  {:n 5} {:n 4} {:n 3} {:n 2} {:n 1} {:n 0}]
+
+    :f2 (map :n) [10 9 8 7 6 5 4 3 2 1 0]
+
+    :f3 (comp (map :n) (xf/take-last 3)) [2 1 0]
+
+    :f4 (comp (xf/take-last 3) (filter #(even? (:n %)))) [{:n 2} {:n 0}])
+
+  (pm/reset-all!))
+
+(deftest ^:eftest/synchronized session-test
+  (pm/reset-all!)
+  (let [sess1 (pm/make-session)
+        sess2 (pm/make-session)
+        f1 (fn [n]
+             (lp sess1 :f identity))
+        f2 (fn [n]
+             (lp sess2 :f identity))]
+    (f1 5)
+    (f2 100)
+    (f1 10)
+    (f2 200)
+    (= {:f [{:n 5} {:n 10}]} (pm/all-logs sess1))
+    (= {:f [{:n 100} {:n 200}]} (pm/all-logs sess2))
+    (= {} (pm/all-logs))))
