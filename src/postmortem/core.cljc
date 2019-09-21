@@ -1,6 +1,7 @@
 (ns postmortem.core
   (:refer-clojure :exclude [reset!])
-  (:require [postmortem.protocols :as proto]
+  (:require [clojure.core :as c]
+            [postmortem.protocols :as proto]
             [postmortem.session :as session]))
 
 (defn make-session
@@ -11,16 +12,17 @@
 (defn session-name [session]
   (proto/-name session))
 
-(def ^:private ^:dynamic *current-session* (make-session))
+(def ^:private ^:dynamic *current-session*
+  (atom (make-session)))
 
 (defn current-session []
-  *current-session*)
+  @*current-session*)
 
 (defn set-current-session! [session]
-  (alter-var-root #'*current-session* (constantly session)))
+  (c/reset! *current-session* session))
 
 (defmacro with-session [session & body]
-  `(binding [*current-session* ~session]
+  `(binding [postmortem.core/*current-session* (atom ~session)]
      ~@body))
 
 (defn log-for
