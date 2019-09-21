@@ -50,10 +50,11 @@
    (proto/-logs session)))
 
 (defn reset!
-  ([keys] (reset! (current-session) keys))
-  ([session keys]
-   (proto/-reset! session (set keys))
-   nil))
+  ([key-or-keys] (reset! (current-session) key-or-keys))
+  ([session key-or-keys]
+   (let [keys (if (coll? key-or-keys) key-or-keys #{key-or-keys})]
+     (proto/-reset! session (set keys))
+     nil)))
 
 (defn reset-all!
   ([] (reset-all! (current-session)))
