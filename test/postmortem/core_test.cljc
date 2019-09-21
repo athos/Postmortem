@@ -13,7 +13,7 @@
       a
       (recur (dec n) b (add a b)))))
 
-(deftest basic-workflow-test
+(deftest ^:eftest/synchronized basic-workflow-test
   (fib 5)
   (is (= [{:a 0 :b 1}
           {:a 1 :b 1}
