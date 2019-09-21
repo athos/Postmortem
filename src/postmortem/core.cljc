@@ -29,7 +29,7 @@
    (get (proto/-logs session #{key}) key)))
 
 (defn logs-for
-  ([keys] (logs (current-session) keys))
+  ([keys] (logs-for (current-session) keys))
   ([session keys]
    (proto/-logs session (set keys))))
 
