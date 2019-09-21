@@ -54,7 +54,6 @@
   ([key] `(logpoint ~key identity))
   ([key xform] `(logpoint (current-session) ~key ~xform))
   ([session key xform]
-   (assert (keyword? key) "ID must be keyword")
    (let [vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
      `(proto/-add-item! ~session  ~key ~xform ~vals))))
 
@@ -65,7 +64,6 @@
   ([x key] `(spy> ~x ~key identity))
   ([x key xform] `(spy> ~x (current-session) ~key ~xform))
   ([x session key xform]
-   (assert (keyword? key) "ID must be keyword")
    `(let [x# ~x]
       (proto/-add-item! ~session ~key ~xform x#)
       x#)))
