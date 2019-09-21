@@ -8,5 +8,8 @@
                    :main-opts ["-m" "clj-check.check"]}
            :cljs {:extra-deps
                   {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
-           :test {:extra-paths ["test"]}
+           :test {:extra-paths ["test"]
+                  :main-opts ["-m" "postmortem.test-runner"]}
+           :test-cljs {:main-opts ["-m" "cljs.main" "-re" "node"
+                                   "-m" "postmortem.test-runner"]}
            :1.9 {:override-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}}}
