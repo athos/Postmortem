@@ -1,4 +1,5 @@
 # Postmortem
+[![CircleCI](https://circleci.com/gh/athos/postmortem.svg?style=shield)](https://circleci.com/gh/athos/postmortem)
 
 A tiny programmable debugging logger for Clojure(Script), powered by transducers
 
