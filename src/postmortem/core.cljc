@@ -82,6 +82,7 @@
     ([key] `(logpoint ~key identity))
     ([key xform] `(logpoint (current-session) ~key ~xform))
     ([session key xform]
+     (assert (valid-key? key) (str key " is not a valid key"))
      (let [vals (->> (macros/case :clj &env
                                   :cljs (:locals &env))
                      (into {} (map (fn [[k v]] `[~(keyword k) ~k]))))]
@@ -94,6 +95,7 @@
     ([x key] `(spy> ~x ~key identity))
     ([x key xform] `(spy> ~x (current-session) ~key ~xform))
     ([x session key xform]
+     (assert (valid-key? key) (str key " is not a valid key"))
      `(let [x# ~x]
         (proto/-add-item! ~session '~key ~xform x#)
         x#)))
