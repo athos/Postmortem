@@ -15,8 +15,8 @@
              (vreset! finished? true))
            (unreduced ret)))))))
 
-(defn- enqueue! [logs id xform item]
-  (swap! logs update id
+(defn- enqueue! [logs key xform item]
+  (swap! logs update key
          (fn [entry]
            (as-> entry e
              (if (nil? e)
@@ -35,36 +35,36 @@
         (update :items (:fn entry))
         (assoc :completed? true))))
 
-(defn- complete-logs! [logs ids]
+(defn- complete-logs! [logs keys]
   (swap! logs
          (fn [logs]
-           (reduce-kv (fn [m id entry]
-                        (if (contains? ids id)
+           (reduce-kv (fn [m key entry]
+                        (if (contains? keys key)
                           (let [entry' (complete-log-entry! entry)]
                             (if (identical? entry entry')
                               m
-                              (assoc m id entry')))
+                              (assoc m key entry')))
                           m))
                       logs
                       logs))))
 
-(defn- collect-logs [logs ids]
-  (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} ids))
+(defn- collect-logs [logs keys]
+  (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} keys))
 
 (deftype Session [name logs]
   proto/ISession
   (-name [this] name)
   proto/ILogStorage
-  (-add-item! [this id xform item]
-    (enqueue! logs id xform item))
+  (-add-item! [this key xform item]
+    (enqueue! logs key xform item))
   (-logs [this]
     (complete-logs! logs (set (keys @logs)))
     (let [logs @logs]
       (collect-logs logs (keys logs))))
-  (-logs [this ids]
-    (complete-logs! logs ids)
-    (collect-logs @logs ids))
+  (-logs [this keys]
+    (complete-logs! logs keys)
+    (collect-logs @logs keys))
   (-reset! [this]
     (reset! logs {}))
-  (-reset! [this ids]
-    (apply swap! logs dissoc ids)))
+  (-reset! [this keys]
+    (apply swap! logs dissoc keys)))

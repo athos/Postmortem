@@ -11,66 +11,66 @@
 (defn session-name [session]
   (proto/-name session))
 
-(def ^:private ^:dynamic *default-session* (make-session))
+(def ^:private ^:dynamic *current-session* (make-session))
 
-(defn default-session []
-  *default-session*)
+(defn current-session []
+  *current-session*)
 
-(defn set-default-session! [session]
-  (alter-var-root #'*default-session* (constantly session)))
+(defn set-current-session! [session]
+  (alter-var-root #'*current-session* (constantly session)))
 
 (defmacro with-session [session & body]
-  `(binding [*default-session* ~session]
+  `(binding [*current-session* ~session]
      ~@body))
 
 (defn log-for
-  ([id] (log-for (default-session) id))
-  ([session id]
-   (get (proto/-logs session #{id}) id)))
+  ([key] (log-for (current-session) key))
+  ([session key]
+   (get (proto/-logs session #{key}) key)))
 
 (defn logs-for
-  ([ids] (logs (default-session) ids))
-  ([session ids]
-   (proto/-logs session (set ids))))
+  ([keys] (logs (current-session) keys))
+  ([session keys]
+   (proto/-logs session (set keys))))
 
 (defn all-logs
-  ([] (all-logs (default-session)))
+  ([] (all-logs (current-session)))
   ([session]
    (proto/-logs session)))
 
 (defn reset!
-  ([ids] (reset! (default-session) ids))
-  ([session ids]
-   (proto/-reset! session (set ids))
+  ([keys] (reset! (current-session) keys))
+  ([session keys]
+   (proto/-reset! session (set keys))
    nil))
 
 (defn reset-all!
-  ([] (reset-all! (default-session)))
+  ([] (reset-all! (current-session)))
   ([session]
    (proto/-reset! session)
    nil))
 
 (defmacro logpoint
-  ([id] `(logpoint ~id identity))
-  ([id xform] `(logpoint (default-session) ~id ~xform))
-  ([session id xform]
-   (assert (keyword? id) "ID must be keyword")
+  ([key] `(logpoint ~key identity))
+  ([key xform] `(logpoint (current-session) ~key ~xform))
+  ([session key xform]
+   (assert (keyword? key) "ID must be keyword")
    (let [vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
-     `(proto/-add-item! ~session  ~id ~xform ~vals))))
+     `(proto/-add-item! ~session  ~key ~xform ~vals))))
 
-(defmacro ^{:arglists '([id] [id xform] [session id xform])} lp [& args]
+(defmacro ^{:arglists '([key] [key xform] [session key xform])} lp [& args]
   `(logpoint ~@args))
 
 (defmacro spy>
-  ([x id] `(spy> ~x ~id identity))
-  ([x id xform] `(spy> ~x (default-session) ~id ~xform))
-  ([x session id xform]
-   (assert (keyword? id) "ID must be keyword")
+  ([x key] `(spy> ~x ~key identity))
+  ([x key xform] `(spy> ~x (current-session) ~key ~xform))
+  ([x session key xform]
+   (assert (keyword? key) "ID must be keyword")
    `(let [x# ~x]
-      (proto/-add-item! ~session ~id ~xform x#)
+      (proto/-add-item! ~session ~key ~xform x#)
       x#)))
 
 (defmacro spy>>
-  ([id x] `(spy>> ~id identity ~x))
-  ([id xform x] `(spy>> (default-session) ~id ~xform ~x))
-  ([session id xform x] `(spy> ~x ~session ~id ~xform)))
+  ([key x] `(spy>> ~key identity ~x))
+  ([key xform x] `(spy>> (current-session) ~key ~xform ~x))
+  ([session key xform x] `(spy> ~x ~session ~key ~xform)))
