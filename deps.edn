@@ -1,5 +1,6 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.10.1"}}
+ :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        net.cgrand/macrovich {:mvn/version "0.2.1"}}
  :aliases {:check {:extra-deps
                    {athos/clj-check
                     {:git/url "https://github.com/athos/clj-check.git"

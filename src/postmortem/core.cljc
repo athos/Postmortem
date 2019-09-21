@@ -1,8 +1,12 @@
 (ns postmortem.core
   (:refer-clojure :exclude [reset!])
   (:require [clojure.core :as c]
+            #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
-            [postmortem.session :as session]))
+            [postmortem.session :as session])
+  #?(:cljs
+     (:require-macros [net.cgrand.macrovich :as macros]
+                      [postmortem.core :refer [logpoint lp spy> spy>>]])))
 
 (defn make-session
   ([] (make-session nil))
@@ -21,9 +25,14 @@
 (defn set-current-session! [session]
   (c/reset! *current-session* session))
 
-(defmacro with-session [session & body]
-  `(binding [postmortem.core/*current-session* (atom ~session)]
-     ~@body))
+
+(macros/deftime
+
+  (defmacro with-session [session & body]
+    `(binding [postmortem.core/*current-session* (atom ~session)]
+       ~@body))
+
+  )
 
 (defn log-for
   ([key] (log-for (current-session) key))
@@ -52,25 +61,31 @@
    (proto/-reset! session)
    nil))
 
-(defmacro logpoint
-  ([key] `(logpoint ~key identity))
-  ([key xform] `(logpoint (current-session) ~key ~xform))
-  ([session key xform]
-   (let [vals (into {} (map (fn [[k v]] `[~(keyword k) ~k])) &env)]
-     `(proto/-add-item! ~session  ~key ~xform ~vals))))
+(macros/deftime
 
-(defmacro ^{:arglists '([key] [key xform] [session key xform])} lp [& args]
-  `(logpoint ~@args))
+  (defmacro logpoint
+    ([key] `(logpoint ~key identity))
+    ([key xform] `(logpoint (current-session) ~key ~xform))
+    ([session key xform]
+     (let [vals (->> (macros/case :clj &env
+                                  :cljs (:locals &env))
+                     (into {} (map (fn [[k v]] `[~(keyword k) ~k]))))]
+       `(proto/-add-item! ~session  ~key ~xform ~vals))))
 
-(defmacro spy>
-  ([x key] `(spy> ~x ~key identity))
-  ([x key xform] `(spy> ~x (current-session) ~key ~xform))
-  ([x session key xform]
-   `(let [x# ~x]
-      (proto/-add-item! ~session ~key ~xform x#)
-      x#)))
+  (defmacro ^{:arglists '([key] [key xform] [session key xform])} lp [& args]
+    `(logpoint ~@args))
 
-(defmacro spy>>
-  ([key x] `(spy>> ~key identity ~x))
-  ([key xform x] `(spy>> (current-session) ~key ~xform ~x))
-  ([session key xform x] `(spy> ~x ~session ~key ~xform)))
+  (defmacro spy>
+    ([x key] `(spy> ~x ~key identity))
+    ([x key xform] `(spy> ~x (current-session) ~key ~xform))
+    ([x session key xform]
+     `(let [x# ~x]
+        (proto/-add-item! ~session ~key ~xform x#)
+        x#)))
+
+  (defmacro spy>>
+    ([key x] `(spy>> ~key identity ~x))
+    ([key xform x] `(spy>> (current-session) ~key ~xform ~x))
+    ([session key xform x] `(spy> ~x ~session ~key ~xform)))
+
+  )
