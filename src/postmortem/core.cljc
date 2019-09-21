@@ -17,7 +17,7 @@
 (defn make-session
   ([] (make-session nil))
   ([name]
-   (session/->Session name (atom {}))))
+   (session/->ThreadUnsafeSession name {})))
 
 (defn session-name [session]
   (proto/-name session))
