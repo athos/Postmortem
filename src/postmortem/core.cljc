@@ -86,7 +86,9 @@
      (let [vals (->> (macros/case :clj &env
                                   :cljs (:locals &env))
                      (into {} (map (fn [[k v]] `[~(keyword k) ~k]))))]
-       `(proto/-add-item! ~session  '~key ~xform ~vals))))
+       `(do
+          (proto/-add-item! ~session  '~key ~xform ~vals)
+          nil))))
 
   (defmacro ^{:arglists '([key] [key xform] [session key xform])} lp [& args]
     `(logpoint ~@args))
