@@ -4,7 +4,9 @@
             #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
             [postmortem.session :as session])
-  #?(:cljs
+  #?(:clj
+     (:import [java.util.concurrent.locks ReentrantLock])
+     :cljs
      (:require-macros [net.cgrand.macrovich :as macros]
                       [postmortem.core :refer [logpoint lp spy> spy>>]])))
 
@@ -18,6 +20,12 @@
   ([] (make-session nil))
   ([name]
    (session/->ThreadUnsafeSession name {})))
+
+#?(:clj
+   (defn make-locking-session
+     ([] (make-locking-session nil))
+     ([name]
+      (session/->LockingSession name (ReentrantLock.) (volatile! {})))))
 
 (defn session-name [session]
   (proto/-name session))

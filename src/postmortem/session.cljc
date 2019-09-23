@@ -1,5 +1,6 @@
 (ns postmortem.session
-  (:require [postmortem.protocols :as proto]))
+  (:require [postmortem.protocols :as proto])
+  #?(:clj (:import [java.util.concurrent.locks ReentrantLock])))
 
 (defn- xf->rf [xform]
   (let [rf (xform conj)
@@ -65,3 +66,36 @@
     (set! logs {}))
   (-reset! [this keys]
     (set! logs (apply dissoc logs keys))))
+
+#?(:clj
+   (defmacro with-lock [lock & body]
+     `(let [lock# ~lock]
+        (.lock lock#)
+        (try
+          ~@body
+          (finally
+            (.unlock lock#))))))
+
+#?(:clj
+   (deftype LockingSession [name ^ReentrantLock lock logs]
+     proto/ISession
+     (-name [this] name)
+     proto/ILogStorage
+     (-add-item! [this key xform item]
+       (with-lock lock
+         (vswap! logs enqueue! key xform item)))
+     (-logs [this]
+       (with-lock lock
+         (vswap! logs complete-logs! (set (keys @logs))))
+       (let [logs @logs]
+         (collect-logs logs (keys logs))))
+     (-logs [this keys]
+       (with-lock lock
+         (vswap! logs complete-logs! keys))
+       (collect-logs @logs keys))
+     (-reset! [this]
+       (with-lock lock
+         (vreset! logs {})))
+     (-reset! [this keys]
+       (with-lock lock
+         (vreset! logs (apply dissoc @logs keys))))))
