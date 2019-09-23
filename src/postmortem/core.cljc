@@ -27,9 +27,6 @@
      ([name]
       (session/->LockingSession name (ReentrantLock.) (volatile! {})))))
 
-(defn session-name [session]
-  (proto/-name session))
-
 (def ^:private ^:dynamic *current-session*
   (atom (make-session)))
 

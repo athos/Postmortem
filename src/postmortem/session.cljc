@@ -50,9 +50,8 @@
 (defn- collect-logs [logs keys]
   (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} keys))
 
-(deftype ThreadUnsafeSession [name ^:unsynchronized-mutable logs]
+(deftype ThreadUnsafeSession [^:unsynchronized-mutable logs]
   proto/ISession
-  (-name [this] name)
   proto/ILogStorage
   (-add-item! [this key xform item]
     (set! logs (enqueue! logs key xform item)))
@@ -77,9 +76,8 @@
             (.unlock lock#))))))
 
 #?(:clj
-   (deftype LockingSession [name ^ReentrantLock lock logs]
+   (deftype LockingSession [^ReentrantLock lock logs]
      proto/ISession
-     (-name [this] name)
      proto/ILogStorage
      (-add-item! [this key xform item]
        (with-lock lock

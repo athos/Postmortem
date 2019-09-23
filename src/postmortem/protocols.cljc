@@ -1,8 +1,7 @@
 (ns postmortem.protocols
-  #?(:cljs (:refer-clojure :exclude [-name -reset!])))
+  #?(:cljs (:refer-clojure :exclude [-reset!])))
 
-(defprotocol ISession
-  (-name [this]))
+(defprotocol ISession)
 
 (defprotocol ILogStorage
   (-add-item! [this id xform item])
