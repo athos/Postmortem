@@ -106,3 +106,16 @@
     (= {:f [{:n 5} {:n 10}]} (pm/all-logs sess1))
     (= {:f [{:n 100} {:n 200}]} (pm/all-logs sess2))
     (= {} (pm/all-logs))))
+
+#?(:clj
+
+   (deftest ^:eftest/synchronized locking-session-test
+     (let [sess (pm/make-locking-session)
+           f (fn [n] (lp sess :f (comp (map-indexed #(assoc %2 :i %1))
+                                       (xf/take-last))))
+           futures [(future (dotimes [i 10000] (f i)))
+                    (future (dotimes [i 10000] (f i)))]]
+       (run! deref futures)
+       (is (= 19999 (->> (pm/log-for sess :f) first :i)))))
+
+   )
