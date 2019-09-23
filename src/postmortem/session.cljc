@@ -16,12 +16,12 @@
              (vreset! finished? true))
            (unreduced ret)))))))
 
-(defn- enqueue! [logs key xform item]
+(defn- enqueue! [logs key base-xform xform item]
   (update logs key
           (fn [entry]
             (as-> entry e
               (if (nil? e)
-                (let [rf (xf->rf xform)]
+                (let [rf (xf->rf (comp base-xform xform))]
                   (assoc e :fn rf :completed? false :items (rf)))
                 e)
               (update e :items (:fn e) item)
@@ -50,11 +50,11 @@
 (defn- collect-logs [logs keys]
   (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} keys))
 
-(deftype ThreadUnsafeSession [^:unsynchronized-mutable logs]
+(deftype ThreadUnsafeSession [xform ^:unsynchronized-mutable logs]
   proto/ISession
   proto/ILogStorage
-  (-add-item! [this key xform item]
-    (set! logs (enqueue! logs key xform item)))
+  (-add-item! [this key xform' item]
+    (set! logs (enqueue! logs key xform xform' item)))
   (-logs [this]
     (set! logs (complete-logs! logs (set (keys logs))))
     (collect-logs logs (keys logs)))
@@ -76,12 +76,12 @@
             (.unlock lock#))))))
 
 #?(:clj
-   (deftype LockingSession [^ReentrantLock lock logs]
+   (deftype LockingSession [^ReentrantLock lock xform logs]
      proto/ISession
      proto/ILogStorage
-     (-add-item! [this key xform item]
+     (-add-item! [this key xform' item]
        (with-lock lock
-         (vswap! logs enqueue! key xform item)))
+         (vswap! logs enqueue! key xform xform' item)))
      (-logs [this]
        (with-lock lock
          (vswap! logs complete-logs! (set (keys @logs))))

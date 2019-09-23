@@ -17,15 +17,15 @@
   (satisfies? proto/ISession x))
 
 (defn make-session
-  ([] (make-session nil))
-  ([name]
-   (session/->ThreadUnsafeSession name {})))
+  ([] (make-session identity))
+  ([xform]
+   (session/->ThreadUnsafeSession xform {})))
 
 #?(:clj
    (defn make-locking-session
-     ([] (make-locking-session nil))
-     ([name]
-      (session/->LockingSession name (ReentrantLock.) (volatile! {})))))
+     ([] (make-locking-session identity))
+     ([xform]
+      (session/->LockingSession (ReentrantLock.) xform (volatile! {})))))
 
 (def ^:private ^:dynamic *current-session*
   (atom (make-session)))

@@ -1,5 +1,5 @@
 (ns postmortem.core-test
-  (:require [clojure.test :refer [deftest is are]]
+  (:require [clojure.test :refer [deftest is are testing]]
             [postmortem.core :as pm :refer [lp spy> spy>>]]
             [postmortem.xforms :as xf]))
 
@@ -92,20 +92,29 @@
   (pm/reset-all!))
 
 (deftest ^:eftest/synchronized session-test
-  (pm/reset-all!)
-  (let [sess1 (pm/make-session)
-        sess2 (pm/make-session)
-        f1 (fn [n]
-             (lp sess1 :f identity))
-        f2 (fn [n]
-             (lp sess2 :f identity))]
-    (f1 5)
-    (f2 100)
-    (f1 10)
-    (f2 200)
-    (= {:f [{:n 5} {:n 10}]} (pm/all-logs sess1))
-    (= {:f [{:n 100} {:n 200}]} (pm/all-logs sess2))
-    (= {} (pm/all-logs))))
+  (testing "sessions can isolate multiple execution logs"
+    (pm/reset-all!)
+    (let [sess1 (pm/make-session)
+          sess2 (pm/make-session)
+          f1 (fn [n]
+               (lp sess1 :f (map :n)))
+          f2 (fn [n]
+               (lp sess2 :f (map :n)))]
+      (f1 5)
+      (f2 100)
+      (f1 10)
+      (f2 200)
+      (= {:f [5 10]} (pm/all-logs sess1))
+      (= {:f [100 200]} (pm/all-logs sess2))
+      (= {} (pm/all-logs))))
+  (testing "sessions can hold base transducer"
+    (let [sess (pm/make-session (xf/take-last 3))
+          f (fn [n]
+              (lp sess :f-n (map :n))
+              (spy>> sess :f-ret (filter even?) (inc n)))]
+      (dotimes [i 10] (f i))
+      (is (= [7 8 9] (pm/log-for sess :f-n)))
+      (is (= [8 10] (pm/log-for sess :f-ret))))))
 
 #?(:clj
 
