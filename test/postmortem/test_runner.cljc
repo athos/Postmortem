@@ -5,4 +5,6 @@
 
 (defn -main []
   (t/run-tests 'postmortem.xforms-test
-               'postmortem.core-test))
+               'postmortem.core-test)
+  ;; some tests use futures, so it's necessary to shutdown agents after tests
+  (shutdown-agents))
