@@ -50,7 +50,7 @@
 (defn- collect-logs [logs keys]
   (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} keys))
 
-(deftype ThreadUnsafeSession [xform ^:unsynchronized-mutable logs]
+(deftype ThreadUnsafeSession [xform ^:volatile-mutable logs]
   proto/ISession
   proto/ILogStorage
   (-add-item! [this key xform' item]
