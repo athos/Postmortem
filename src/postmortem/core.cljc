@@ -13,16 +13,25 @@
 (defn- valid-key? [x]
   (or (keyword? x) (symbol? x) (string? x) (integer? x)))
 
-(defn session? [x]
+(defn session?
+  "Returns true if x is a session."
+  [x]
   (satisfies? proto/ISession x))
 
 (defn make-session
+  "Creates and returns a new session.
+  Note that sessions created by this function are thread-unsafe.
+  If updates to a session need to be synchronized among multithreads,
+  use make-locking-session instead."
   ([] (make-session identity))
   ([xform]
    (session/->ThreadUnsafeSession xform {})))
 
 #?(:clj
    (defn make-locking-session
+     "Creates and returns a new locking session.
+  A locking session is almost same as an ordinary session except that all
+  updates to a locking session will be synchronized."
      ([] (make-locking-session identity))
      ([xform]
       (session/->LockingSession (ReentrantLock.) xform (volatile! {})))))
@@ -30,21 +39,31 @@
 (def ^:private ^:dynamic *current-session*
   (atom (make-session)))
 
-(defn current-session []
+(defn current-session
+  "Returns the current session."
+  []
   @*current-session*)
 
-(defn set-current-session! [session]
+(defn set-current-session!
+  "Sets the current session to the specified one."
+  [session]
   (c/reset! *current-session* session))
 
 (macros/deftime
 
-  (defmacro with-session [session & body]
+  (defmacro with-session
+    "Dynamically binds the current session to the specified one within the body
+  of this form."
+    [session & body]
     `(binding [postmortem.core/*current-session* (atom ~session)]
        ~@body))
 
   )
 
 (defn log-for
+  "Completes log entry for the specified key and returns a vector of logged
+  items in the entry.
+  If session is omitted, the log will be pulled from the current session."
   ([key] (log-for (current-session) key))
   ([session key]
    (assert (session? session) "Invalid session specified")
@@ -52,6 +71,9 @@
    (get (proto/-logs session #{key}) key)))
 
 (defn logs-for
+  "Completes log entries for the specified keys and returns a map of key to
+  vector of logged items.
+  If session is omitted, the logs will be pulled from the current session."
   ([keys] (logs-for (current-session) keys))
   ([session keys]
    (assert (session? session) "Invalid session specified")
@@ -59,12 +81,16 @@
    (proto/-logs session (set keys))))
 
 (defn all-logs
+  "Completes all log entries and returns a map of key to vector of logged items.
+  If session is omitted, the logs will be pulled from the current session."
   ([] (all-logs (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
    (proto/-logs session)))
 
 (defn reset!
+  "Resets log entries for the specified key(s).
+  If session is omitted, the entries in the current session will be reset."
   ([key-or-keys] (reset! (current-session) key-or-keys))
   ([session key-or-keys]
    (assert (session? session) "Invalid session specified")
@@ -75,6 +101,8 @@
      nil)))
 
 (defn reset-all!
+  "Resets all the log entries.
+  If session is omitted, the entries in the current session will be reset."
   ([] (reset-all! (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
@@ -84,6 +112,15 @@
 (macros/deftime
 
   (defmacro logpoint
+    "Add a local environment map to the log entry corresponding to the specified
+  key. A local environment map is a map of keyword representing each local name
+  in the scope at that position, to the value that the local name is bound to.
+  Key must be either keyword, symbol, string or integer.
+  If a transducer xform is specified, it will be applied when adding
+  the environment map to the log entry. Defaults to identity.
+  If session is specified, the environment map will be added to the log entry in
+  that session. Otherwise, the environment map will be added to the log entry in
+  the current session."
     ([key] `(logpoint ~key identity))
     ([key xform] `(logpoint (current-session) ~key ~xform))
     ([session key xform]
@@ -95,7 +132,10 @@
           (proto/-add-item! ~session  '~key ~xform ~vals)
           nil))))
 
-  (defmacro ^{:arglists '([key] [key xform] [session key xform])} lp [& args]
+  (defmacro
+    ^{:arglists '([key] [key xform] [session key xform])
+      :doc "Shorthand for logpoint. See the docstring of logpoint for more details."}
+    lp [& args]
     `(logpoint ~@args))
 
   (defmacro spy>
