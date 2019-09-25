@@ -73,6 +73,7 @@
     (set! logs (complete-logs! logs keys))))
 
 #?(:clj
+   ;; to avoid using the locking macro, which is problematic in some environments (see CLJ-1472)
    (defmacro with-lock [lock & body]
      `(let [lock# ~lock]
         (.lock lock#)
