@@ -1,8 +1,15 @@
 # Postmortem
+[![Clojars Project](https://img.shields.io/clojars/v/postmortem.svg)](https://clojars.org/postmortem)
 [![CircleCI](https://circleci.com/gh/athos/postmortem.svg?style=shield)](https://circleci.com/gh/athos/postmortem)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
 
 A tiny programmable debugging logger for Clojure(Script), powered by transducers
+
+## Installation
+
+Add the following to your project `:dependencies`:
+
+[![Clojars Project](https://clojars.org/postmortem/latest-version.svg)](https://clojars.org/postmortem)
 
 ## Usage
 
