@@ -118,8 +118,8 @@
 
 #?(:clj
 
-   (deftest ^:eftest/synchronized locking-session-test
-     (let [sess (pm/make-locking-session)
+   (deftest ^:eftest/synchronized synchronized-session-test
+     (let [sess (pm/make-synchronized-session)
            f (fn [n] (lp sess :f (comp (map-indexed #(assoc %2 :i %1))
                                        (xf/take-last))))
            futures [(future (dotimes [i 10000] (f i)))

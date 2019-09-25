@@ -20,17 +20,17 @@
   "Creates and returns a new session.
   Note that sessions created by this function are thread-unsafe.
   If updates to a session need to be synchronized among multithreads,
-  use make-locking-session instead."
+  use make-synchronized-session instead."
   ([] (make-session identity))
   ([xform]
    (session/->ThreadUnsafeSession xform {})))
 
 #?(:clj
-   (defn make-locking-session
-     "Creates and returns a new locking session.
-  A locking session is almost same as an ordinary session except that all
-  updates to a locking session will be synchronized."
-     ([] (make-locking-session identity))
+   (defn make-synchronized-session
+     "Creates and returns a new synchronized session.
+  A synchronized session is almost same as an ordinary session except that all
+  updates to a synchronized session will be synchronized."
+     ([] (make-synchronized-session identity))
      ([xform]
       (session/synchronized (make-session xform)))))
 
