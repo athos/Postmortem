@@ -6,7 +6,7 @@
             [postmortem.session :as session])
   #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
-                      [postmortem.core :refer [logpoint lp spy> spy>>]])))
+                      [postmortem.core :refer [save spy> spy>>]])))
 
 (defn- valid-key? [x]
   (or (keyword? x) (symbol? x) (string? x) (integer? x)))
@@ -94,18 +94,18 @@
    (assert (coll? keys) "keys must be a collection")
    (logs* session (set keys))))
 
-(defn all-logs
+(defn logs
   "Completes all log entries and returns a map of key to vector of logged items.
   If session is omitted, the logs will be pulled from the current session."
-  ([] (all-logs (current-session)))
+  ([] (logs (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
    (logs* session)))
 
-(defn reset!
+(defn reset-for!
   "Resets log entries for the specified key(s).
   If session is omitted, the entries in the current session will be reset."
-  ([key-or-keys] (reset! (current-session) key-or-keys))
+  ([key-or-keys] (reset-for! (current-session) key-or-keys))
   ([session key-or-keys]
    (assert (session? session) "Invalid session specified")
    (assert (or (coll? key-or-keys) (valid-key? key-or-keys))
@@ -114,10 +114,10 @@
      (proto/-reset! session (set keys))
      nil)))
 
-(defn reset-all!
+(defn reset!
   "Resets all the log entries.
   If session is omitted, the entries in the current session will be reset."
-  ([] (reset-all! (current-session)))
+  ([] (reset! (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
    (proto/-reset! session)
@@ -125,8 +125,8 @@
 
 (macros/deftime
 
-  (defmacro logpoint
-    "Add a local environment map to the log entry corresponding to the specified
+  (defmacro save
+    "Save a local environment map to the log entry corresponding to the specified
   key. A local environment map is a map of keyword representing each local name
   in the scope at that position, to the value that the local name is bound to.
   Key must be either keyword, symbol, string or integer.
@@ -135,8 +135,8 @@
   If session is specified, the environment map will be added to the log entry in
   that session. Otherwise, the environment map will be added to the log entry in
   the current session."
-    ([key] `(logpoint ~key identity))
-    ([key xform] `(logpoint (current-session) ~key ~xform))
+    ([key] `(save ~key identity))
+    ([key xform] `(save (current-session) ~key ~xform))
     ([session key xform]
      (assert (valid-key? key) (str key " is not a valid key"))
      (let [vals (->> (macros/case :clj &env
@@ -145,12 +145,6 @@
        `(do
           (proto/-add-item! ~session  '~key ~xform ~vals)
           nil))))
-
-  (defmacro
-    ^{:arglists '([key] [key xform] [session key xform])
-      :doc "Shorthand for logpoint. See the docstring of logpoint for more details."}
-    lp [& args]
-    `(logpoint ~@args))
 
   (defmacro spy>
     ([x key] `(spy> ~x ~key identity))

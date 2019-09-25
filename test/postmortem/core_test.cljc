@@ -1,15 +1,15 @@
 (ns postmortem.core-test
   (:require [clojure.test :refer [deftest is are testing]]
-            [postmortem.core :as pm :refer [lp spy> spy>>]]
+            [postmortem.core :as pm :refer [save spy> spy>>]]
             [postmortem.xforms :as xf]))
 
 (defn add [a b]
-  (lp :add)
+  (save :add)
   (spy>> :add-result (+ a b)))
 
 (defn fib [n]
   (loop [n n a 0 b 1]
-    (lp :fib)
+    (save :fib)
     (if (= n 0)
       a
       (recur (dec n) b (add a b)))))
@@ -50,9 +50,9 @@
                 {:n 2 :a 2 :b 3}
                 {:n 1 :a 3 :b 5}
                 {:n 0 :a 5 :b 8}]}
-         (pm/all-logs)))
+         (pm/logs)))
 
-  (pm/reset! :add-result)
+  (pm/reset-for! :add-result)
   (is (= {:add [{:a 0 :b 1}
                 {:a 1 :b 1}
                 {:a 1 :b 2}
@@ -64,16 +64,16 @@
                 {:n 2 :a 2 :b 3}
                 {:n 1 :a 3 :b 5}
                 {:n 0 :a 5 :b 8}]}
-         (pm/all-logs)))
+         (pm/logs)))
 
-  (pm/reset-all!)
-  (is (= {} (pm/all-logs))))
+  (pm/reset!)
+  (is (= {} (pm/logs))))
 
 (deftest ^:eftest/synchronized transducers-test
   (are [key xform expected]
       (let [f (fn [n]
                 (loop [n n]
-                  (lp key xform)
+                  (save key xform)
                   (if (= n 0)
                     n
                     (recur (dec n)))))]
@@ -89,28 +89,28 @@
 
     :f4 (comp (xf/take-last 3) (filter #(even? (:n %)))) [{:n 2} {:n 0}])
 
-  (pm/reset-all!))
+  (pm/reset!))
 
 (deftest ^:eftest/synchronized session-test
   (testing "sessions can isolate multiple execution logs"
-    (pm/reset-all!)
+    (pm/reset!)
     (let [sess1 (pm/make-session)
           sess2 (pm/make-session)
           f1 (fn [n]
-               (lp sess1 :f (map :n)))
+               (save sess1 :f (map :n)))
           f2 (fn [n]
-               (lp sess2 :f (map :n)))]
+               (save sess2 :f (map :n)))]
       (f1 5)
       (f2 100)
       (f1 10)
       (f2 200)
-      (= {:f [5 10]} (pm/all-logs sess1))
-      (= {:f [100 200]} (pm/all-logs sess2))
-      (= {} (pm/all-logs))))
+      (= {:f [5 10]} (pm/logs sess1))
+      (= {:f [100 200]} (pm/logs sess2))
+      (= {} (pm/logs))))
   (testing "sessions can hold base transducer"
     (let [sess (pm/make-session (xf/take-last 3))
           f (fn [n]
-              (lp sess :f-n (map :n))
+              (save sess :f-n (map :n))
               (spy>> sess :f-ret (filter even?) (inc n)))]
       (dotimes [i 10] (f i))
       (is (= [7 8 9] (pm/log-for sess :f-n)))
@@ -120,8 +120,8 @@
 
    (deftest ^:eftest/synchronized synchronized-session-test
      (let [sess (pm/make-synchronized-session)
-           f (fn [n] (lp sess :f (comp (map-indexed #(assoc %2 :i %1))
-                                       (xf/take-last))))
+           f (fn [n] (save sess :f (comp (map-indexed #(assoc %2 :i %1))
+                                         (xf/take-last))))
            futures [(future (dotimes [i 10000] (f i)))
                     (future (dotimes [i 10000] (f i)))]]
        (run! deref futures)
