@@ -9,4 +9,5 @@
   (-reset! [this] [this keys]))
 
 (defprotocol ICompletable
+  (-completed? [this key])
   (-complete! [this] [this keys]))

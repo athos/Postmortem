@@ -58,6 +58,13 @@
 
   )
 
+(defn completed?
+  "Returns true if the log entry for the specified key has been completed.
+  If session is omitted, the log entry in the current session will be checked."
+  ([key] (completed? (current-session) key))
+  ([session key]
+   (proto/-completed? session key)))
+
 (defn- logs*
   ([session]
    (proto/-complete! session)

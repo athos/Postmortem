@@ -64,6 +64,8 @@
   (-reset! [this keys]
     (set! logs (apply dissoc logs keys)))
   proto/ICompletable
+  (-completed? [this key]
+    (-> logs (get key) (get :completed?)))
   (-complete! [this]
     (set! logs (complete-logs! logs (set (keys logs)))))
   (-complete! [this keys]
@@ -98,6 +100,9 @@
            (with-lock lock
              (proto/-reset! session keys)))
          proto/ICompletable
+         (-completed? [this key]
+           (with-lock lock
+             (proto/-completed? session key)))
          (-complete! [this]
            (with-lock lock
              (proto/-complete! session)))
