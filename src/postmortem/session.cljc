@@ -17,17 +17,14 @@
            (unreduced ret)))))))
 
 (defn- enqueue! [logs key base-xform xform item]
-  (update logs key
-          (fn [entry]
-            (as-> entry e
-              (if (nil? e)
-                (let [rf (xf->rf (comp base-xform xform))]
-                  (assoc e :fn rf :completed? false :items (rf)))
-                e)
-              (update e :items (:fn e) item)
-              (if (identical? (:items entry) (:items e))
-                e
-                (assoc e :completed? false))))))
+  (if-let [{:keys [items] :as entry} (get logs key)]
+    (let [items' ((:fn entry) items item)]
+      (if (identical? items items')
+        logs
+        (assoc logs key (assoc entry :items items'))))
+    (let [rf (xf->rf (comp base-xform xform))
+          entry {:items (rf (rf) item) :fn rf :completed? false}]
+      (assoc logs key entry))))
 
 (defn- complete-log-entry! [entry]
   (if (:completed? entry)
@@ -48,7 +45,9 @@
              logs))
 
 (defn- collect-logs [logs keys]
-  (reduce (fn [m k] (assoc m k (-> logs (get k) (get :items)))) {} keys))
+  (->> keys
+       (reduce (fn [m k] (assoc! m k (-> logs (get k) (get :items)))) (transient {}))
+       persistent!))
 
 (deftype ThreadUnsafeSession [xform ^:volatile-mutable logs]
   proto/ISession
