@@ -7,7 +7,9 @@
         finished? (volatile! false)]
     (fn
       ([] (rf))
-      ([result] (rf result))
+      ([result]
+       (vreset! finished? true)
+       (rf result))
       ([acc item]
        (if @finished?
          acc
