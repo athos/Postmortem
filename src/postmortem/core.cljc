@@ -45,7 +45,8 @@
 (defn set-current-session!
   "Sets the current session to the specified one."
   [session]
-  (c/reset! *current-session* session))
+  (c/reset! *current-session* session)
+  nil)
 
 (macros/deftime
 
