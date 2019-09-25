@@ -4,9 +4,7 @@
             #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
             [postmortem.session :as session])
-  #?(:clj
-     (:import [java.util.concurrent.locks ReentrantLock])
-     :cljs
+  #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
                       [postmortem.core :refer [logpoint lp spy> spy>>]])))
 
@@ -34,7 +32,7 @@
   updates to a locking session will be synchronized."
      ([] (make-locking-session identity))
      ([xform]
-      (session/->LockingSession (ReentrantLock.) xform (volatile! {})))))
+      (session/synchronized (make-session xform)))))
 
 (def ^:private ^:dynamic *current-session*
   (atom (make-session)))
@@ -60,6 +58,14 @@
 
   )
 
+(defn- logs*
+  ([session]
+   (proto/-complete! session)
+   (proto/-logs session))
+  ([session keys]
+   (proto/-complete! session keys)
+   (proto/-logs session keys)))
+
 (defn log-for
   "Completes log entry for the specified key and returns a vector of logged
   items in the entry.
@@ -68,7 +74,7 @@
   ([session key]
    (assert (session? session) "Invalid session specified")
    (assert (valid-key? key) (str key " is not a valid key"))
-   (get (proto/-logs session #{key}) key)))
+   (get (logs* session #{key}) key)))
 
 (defn logs-for
   "Completes log entries for the specified keys and returns a map of key to
@@ -78,7 +84,7 @@
   ([session keys]
    (assert (session? session) "Invalid session specified")
    (assert (coll? keys) "keys must be a collection")
-   (proto/-logs session (set keys))))
+   (logs* session (set keys))))
 
 (defn all-logs
   "Completes all log entries and returns a map of key to vector of logged items.
@@ -86,7 +92,7 @@
   ([] (all-logs (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
-   (proto/-logs session)))
+   (logs* session)))
 
 (defn reset!
   "Resets log entries for the specified key(s).

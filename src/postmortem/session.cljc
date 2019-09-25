@@ -56,15 +56,18 @@
   (-add-item! [this key xform' item]
     (set! logs (enqueue! logs key xform xform' item)))
   (-logs [this]
-    (set! logs (complete-logs! logs (set (keys logs))))
     (collect-logs logs (keys logs)))
   (-logs [this keys]
-    (set! logs (complete-logs! logs keys))
     (collect-logs logs keys))
   (-reset! [this]
     (set! logs {}))
   (-reset! [this keys]
-    (set! logs (apply dissoc logs keys))))
+    (set! logs (apply dissoc logs keys)))
+  proto/ICompletable
+  (-complete! [this]
+    (set! logs (complete-logs! logs (set (keys logs)))))
+  (-complete! [this keys]
+    (set! logs (complete-logs! logs keys))))
 
 #?(:clj
    (defmacro with-lock [lock & body]
@@ -76,24 +79,28 @@
             (.unlock lock#))))))
 
 #?(:clj
-   (deftype LockingSession [^ReentrantLock lock xform logs]
-     proto/ISession
-     proto/ILogStorage
-     (-add-item! [this key xform' item]
-       (with-lock lock
-         (vswap! logs enqueue! key xform xform' item)))
-     (-logs [this]
-       (with-lock lock
-         (vswap! logs complete-logs! (set (keys @logs))))
-       (let [logs @logs]
-         (collect-logs logs (keys logs))))
-     (-logs [this keys]
-       (with-lock lock
-         (vswap! logs complete-logs! keys))
-       (collect-logs @logs keys))
-     (-reset! [this]
-       (with-lock lock
-         (vreset! logs {})))
-     (-reset! [this keys]
-       (with-lock lock
-         (vreset! logs (apply dissoc @logs keys))))))
+   (defn synchronized [session]
+     (let [^ReentrantLock lock (ReentrantLock.)]
+       (reify
+         proto/ISession
+         proto/ILogStorage
+         (-add-item! [this key xform' item]
+           (with-lock lock
+             (proto/-add-item! session key xform' item)))
+         (-logs [this]
+           (proto/-logs session))
+         (-logs [this keys]
+           (proto/-logs session keys))
+         (-reset! [this]
+           (with-lock lock
+             (proto/-reset! session)))
+         (-reset! [this keys]
+           (with-lock lock
+             (proto/-reset! session keys)))
+         proto/ICompletable
+         (-complete! [this]
+           (with-lock lock
+             (proto/-complete! session)))
+         (-complete! [this keys]
+           (with-lock lock
+             (proto/-complete! session keys)))))))
