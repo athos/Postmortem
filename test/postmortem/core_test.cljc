@@ -9,19 +9,21 @@
 
 (defn fib [n]
   (loop [n n a 0 b 1]
-    (save :fib)
+    (save `fib)
     (if (= n 0)
       a
       (recur (dec n) b (add a b)))))
 
 (deftest ^:eftest/synchronized basic-workflow-test
   (fib 5)
+  (is (not (pm/completed? :add)))
   (is (= [{:a 0 :b 1}
           {:a 1 :b 1}
           {:a 1 :b 2}
           {:a 2 :b 3}
           {:a 3 :b 5}]
          (pm/log-for :add)))
+  (is (pm/completed? :add))
   (is (= [1 2 3 5 8]
          (pm/log-for :add-result)))
   (is (= [{:n 5 :a 0 :b 1}
@@ -30,7 +32,7 @@
           {:n 2 :a 2 :b 3}
           {:n 1 :a 3 :b 5}
           {:n 0 :a 5 :b 8}]
-         (pm/log-for :fib)))
+         (pm/log-for `fib)))
   (is (= {:add [{:a 0 :b 1}
                 {:a 1 :b 1}
                 {:a 1 :b 2}
@@ -44,13 +46,14 @@
                 {:a 2 :b 3}
                 {:a 3 :b 5}]
           :add-result [1 2 3 5 8]
-          :fib [{:n 5 :a 0 :b 1}
+          `fib [{:n 5 :a 0 :b 1}
                 {:n 4 :a 1 :b 1}
                 {:n 3 :a 1 :b 2}
                 {:n 2 :a 2 :b 3}
                 {:n 1 :a 3 :b 5}
                 {:n 0 :a 5 :b 8}]}
          (pm/logs)))
+  (is (every? pm/completed? [:add :add-result `fib]))
 
   (pm/reset-for! :add-result)
   (is (= {:add [{:a 0 :b 1}
@@ -58,7 +61,7 @@
                 {:a 1 :b 2}
                 {:a 2 :b 3}
                 {:a 3 :b 5}]
-          :fib [{:n 5 :a 0 :b 1}
+          `fib [{:n 5 :a 0 :b 1}
                 {:n 4 :a 1 :b 1}
                 {:n 3 :a 1 :b 2}
                 {:n 2 :a 2 :b 3}
@@ -114,7 +117,30 @@
               (spy>> sess :f-ret (filter even?) (inc n)))]
       (dotimes [i 10] (f i))
       (is (= [7 8 9] (pm/log-for sess :f-n)))
-      (is (= [8 10] (pm/log-for sess :f-ret))))))
+      (is (= [8 10] (pm/log-for sess :f-ret)))))
+  (testing "set-current-session! destructively changes current session"
+    (let [f (fn [x] (pm/save :f))
+          old (pm/current-session)
+          sess (pm/make-session)]
+      (pm/set-current-session! sess)
+      (f 42)
+      (is (= {} (pm/logs old)))
+      (is (= {:f [{:x 42}]} (pm/logs)))
+      (is (= {:f [{:x 42}]} (pm/logs sess)))
+      (pm/set-current-session! old)
+      (is (= {} (pm/logs)))))
+  (testing "with-session temporarily changes current session"
+    (let [f (fn [x] (pm/save :f))
+          sess (pm/make-session)]
+      (pm/with-session sess
+        (f 42))
+      (is (= {} (pm/logs)))
+      (is (= {:f [{:x 42}]} (pm/logs sess)))
+      (pm/reset! sess)
+      (f 43)
+      (is (= {:f [{:x 43}]} (pm/logs)))
+      (is (= {} (pm/logs sess)))
+      (pm/reset!))))
 
 #?(:clj
 
