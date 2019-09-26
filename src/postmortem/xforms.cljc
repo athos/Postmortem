@@ -30,3 +30,19 @@
          ([acc input]
           (vswap! vals conj! input)
           acc))))))
+
+(defn debounce
+  ([interval] (debounce identity interval))
+  ([f interval]
+   (fn [rf]
+     (let [prev (volatile! nil)]
+       (fn
+         ([] (rf))
+         ([result] (rf result))
+         ([acc input]
+          (let [p @prev
+                v (f input)]
+            (if (or (nil? p) (>= (- v p) interval))
+              (do (vreset! prev v)
+                  (rf acc input))
+              acc))))))))
