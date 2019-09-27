@@ -92,9 +92,11 @@
            (with-lock lock
              (proto/-add-item! session key xform' item)))
          (-logs [this]
-           (proto/-logs session))
+           (with-lock lock
+             (proto/-logs session)))
          (-logs [this keys]
-           (proto/-logs session keys))
+           (with-lock lock
+             (proto/-logs session keys)))
          (-reset! [this]
            (with-lock lock
              (proto/-reset! session)))
