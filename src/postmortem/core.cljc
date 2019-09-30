@@ -129,12 +129,12 @@
 (macros/deftime
 
   (defmacro save
-    "Save a local environment map to the log entry corresponding to the specified
+    "Saves a local environment map to the log entry corresponding to the specified
   key. A local environment map is a map of keyword representing each local name
   in the scope at that position, to the value that the local name is bound to.
   Key must be either keyword, symbol, string or integer.
   If a transducer xform is specified, it will be applied when adding
-  the environment map to the log entry. Defaults to identity.
+  the environment map to the log entry. Defaults to clojure.core/identity.
   If session is specified, the environment map will be added to the log entry in
   that session. Otherwise, the environment map will be added to the log entry in
   the current session."
