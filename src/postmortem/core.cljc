@@ -151,6 +151,13 @@
           nil))))
 
   (defmacro spy>
+    "Saves a value to the log entry corresponding to the specified key and returns
+  the value as-is. Key must be either keyword, symbol, string or integer.
+  If a transducer xform is specified, it will be applied when adding
+  the value to the log entry. Defaults to clojure.core/identity.
+  If session is specified, the value will be added to the log entry in that
+  session. Otherwise, the value will be added to the log entry in the current
+  session."
     ([x key] `(spy> ~x ~key identity))
     ([x key xform] `(spy> ~x (current-session) ~key ~xform))
     ([x session key xform]
@@ -161,6 +168,8 @@
         x#)))
 
   (defmacro spy>>
+    "A version of spy> intended to be used with thread-last macros.
+  See the docstring of spy> for more details for the arguments."
     ([key x] `(spy>> ~key identity ~x))
     ([key xform x] `(spy>> (current-session) ~key ~xform ~x))
     ([session key xform x] `(spy> ~x ~session ~key ~xform)))
