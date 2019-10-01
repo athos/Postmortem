@@ -8,9 +8,6 @@
      (:require-macros [net.cgrand.macrovich :as macros]
                       [postmortem.core :refer [save spy> spy>>]])))
 
-(defn- valid-key? [x]
-  (or (keyword? x) (symbol? x) (string? x) (integer? x)))
-
 (defn session?
   "Returns true if x is a session."
   [x]
@@ -81,7 +78,6 @@
   ([key] (log-for (current-session) key))
   ([session key]
    (assert (session? session) "Invalid session specified")
-   (assert (valid-key? key) (str key " is not a valid key"))
    (get (logs* session #{key}) key)))
 
 (defn logs-for
@@ -108,8 +104,6 @@
   ([key-or-keys] (reset-for! (current-session) key-or-keys))
   ([session key-or-keys]
    (assert (session? session) "Invalid session specified")
-   (assert (or (coll? key-or-keys) (valid-key? key-or-keys))
-           "key-or-keys must be a valid key or a collection of valid keys")
    (let [keys (if (coll? key-or-keys) key-or-keys #{key-or-keys})]
      (proto/-reset! session (set keys))
      nil)))
@@ -123,16 +117,12 @@
    (proto/-reset! session)
    nil))
 
-(defn- quoted-key? [x]
-  (and (seq? x) (= (first x) 'quote) (valid-key? (second x))))
-
 (macros/deftime
 
   (defmacro save
     "Saves a local environment map to the log entry corresponding to the specified
   key. A local environment map is a map of keyword representing each local name
   in the scope at that position, to the value that the local name is bound to.
-  Key must be either keyword, symbol, string or integer.
   If a transducer xform is specified, it will be applied when adding
   the environment map to the log entry. Defaults to clojure.core/identity.
   If session is specified, the environment map will be added to the log entry in
@@ -141,18 +131,16 @@
     ([key] `(save ~key identity))
     ([key xform] `(save (current-session) ~key ~xform))
     ([session key xform]
-     (assert (or (valid-key? key) (quoted-key? key))
-             (str key " is not a valid key"))
      (let [vals (->> (macros/case :clj &env
                                   :cljs (:locals &env))
                      (into {} (map (fn [[k v]] `[~(keyword k) ~k]))))]
        `(do
-          (proto/-add-item! ~session  ~key ~xform ~vals)
+          (proto/-add-item! ~session ~key ~xform ~vals)
           nil))))
 
   (defmacro spy>
     "Saves a value to the log entry corresponding to the specified key and returns
-  the value as-is. Key must be either keyword, symbol, string or integer.
+  the value as-is.
   If a transducer xform is specified, it will be applied when adding
   the value to the log entry. Defaults to clojure.core/identity.
   If session is specified, the value will be added to the log entry in that
@@ -161,8 +149,6 @@
     ([x key] `(spy> ~x ~key identity))
     ([x key xform] `(spy> ~x (current-session) ~key ~xform))
     ([x session key xform]
-     (assert (or (valid-key? key) (quoted-key? key))
-             (str key " is not a valid key"))
      `(let [x# ~x]
         (proto/-add-item! ~session ~key ~xform x#)
         x#)))
