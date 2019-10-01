@@ -51,7 +51,7 @@
     "Dynamically binds the current session to the specified one within the body
   of this form."
     [session & body]
-    `(binding [postmortem.core/*current-session* (atom ~session)]
+    `(binding [*current-session* (atom ~session)]
        ~@body))
 
   )
