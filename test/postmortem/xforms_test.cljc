@@ -38,6 +38,8 @@
 
     (xf/drop-last 3) (range 5) [0 1]
 
+    (xf/drop-last 3) (range 2) []
+
     (comp (filter even?)
           (xf/drop-last 3))
     (range 10)
@@ -46,7 +48,17 @@
     (comp (xf/drop-last 3)
           (filter even?))
     (range 10)
-    [0 2 4 6]))
+    [0 2 4 6]
+
+    (comp (xf/drop-last 3)
+          (xf/drop-last 2))
+    (range 10)
+    [0 1 2 3 4]
+
+    (comp (xf/drop-last 3)
+          (xf/drop-last 2))
+    []
+    []))
 
 (deftest debounce-test
   (are [xform coll expected]
