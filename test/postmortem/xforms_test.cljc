@@ -9,6 +9,8 @@
 
     (xf/take-last 3) (range 10) [7 8 9]
 
+    (xf/take-last 3) (range 2) [0 1]
+
     (comp (filter even?)
           (xf/take-last 3))
     (range 10)
@@ -17,7 +19,17 @@
     (comp (xf/take-last 3)
           (filter even?))
     (range 10)
-    [8]))
+    [8]
+
+    (comp (xf/take-last 3)
+          (xf/take-last 2))
+    (range 10)
+    [8 9]
+
+    (comp (xf/take-last 3)
+          (xf/take-last 2))
+    []
+    []))
 
 (deftest drop-last-test
   (are [xform coll expected]

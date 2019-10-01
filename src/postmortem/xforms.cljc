@@ -10,8 +10,10 @@
        (fn
          ([] (rf))
          ([result]
-          (let [offset (if (>= @idx n) (long @idx) 0)]
-            (transduce (map #(aget vals (rem (+ % offset) n))) rf result (range n))))
+          (let [i (long @idx)
+                start (if (>= i n) i 0)
+                end (if (>= i n) n i)]
+            (transduce (map #(aget vals (rem (+ % start) n))) rf result (range end))))
          ([acc input]
           (aset vals (rem @idx n) input)
           (vswap! idx inc)
