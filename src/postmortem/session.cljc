@@ -2,21 +2,23 @@
   (:require [postmortem.protocols :as proto])
   #?(:clj (:import [java.util.concurrent.locks ReentrantLock])))
 
-(defn- xf->rf [xform]
-  (let [rf (xform conj)
-        finished? (volatile! false)]
-    (fn
-      ([] (rf))
-      ([result]
-       (vreset! finished? true)
-       (rf result))
-      ([acc item]
-       (if @finished?
-         acc
-         (let [ret (rf acc item)]
-           (when (reduced? ret)
-             (vreset! finished? true))
-           (unreduced ret)))))))
+(defn- xf->rf
+  ([xform] (xf->rf xform conj))
+  ([xform rf]
+   (let [rf (xform rf)
+         finished? (volatile! false)]
+     (fn
+       ([] (rf))
+       ([result]
+        (vreset! finished? true)
+        (rf result))
+       ([acc item]
+        (if @finished?
+          acc
+          (let [ret (rf acc item)]
+            (when (reduced? ret)
+              (vreset! finished? true))
+            (unreduced ret))))))))
 
 (defn- enqueue! [logs key base-xform xform item]
   (if-let [{:keys [items] :as entry} (get logs key)]
@@ -85,6 +87,20 @@
           ~@body
           (finally
             (.unlock lock#))))))
+
+(defn null-session []
+  (reify
+    proto/ISession
+    proto/ILogStorage
+    (-add-item! [this key xform item])
+    (-logs [this] {})
+    (-logs [this keys] {})
+    (-reset! [this])
+    (-reset! [this keys])
+    proto/ICompletable
+    (-completed? [this key] true)
+    (-complete! [this])
+    (-complete! [this keys])))
 
 #?(:clj
    (defn synchronized [session]

@@ -143,6 +143,20 @@
       (is (= {} (pm/logs sess)))
       (pm/reset!))))
 
+(deftest null-session-test
+  (testing "null session never logs anything"
+    (let [sess (pm/null-session)]
+      (pm/spy>> sess :sum identity (+ 1 2))
+      (is (= {} (pm/logs sess)))))
+  (testing "null session never triggers transducers"
+    (let [sess (pm/null-session)
+          f (fn [x] (pm/spy>> sess :f (comp (map (fn [x] (prn :pre x) x))
+                                            (xf/take-last)
+                                            (map (fn [x] (prn :post x) x)))
+                              x))]
+      (is (= "" (with-out-str (f 1) (f 2) (f 3))))
+      (is (= "" (with-out-str (pm/logs sess)))))))
+
 #?(:clj
 
    (deftest ^:eftest/synchronized synchronized-session-test

@@ -31,6 +31,14 @@
      ([xform]
       (session/synchronized (make-session xform)))))
 
+(def
+  ^{:arglists '([])
+    :doc "Returns a null session, which logs nothing and never triggers a call
+  to transducer. It's useful to disable logging entirely."}
+  null-session
+  (let [session (session/null-session)]
+    (fn [] session)))
+
 (def ^:dynamic *current-session*
   "Dynamic var bound to the current session. Don't use this directly, call
   (current-session) instead."
