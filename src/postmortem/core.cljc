@@ -31,7 +31,9 @@
      ([xform]
       (session/synchronized (make-session xform)))))
 
-(def ^:private ^:dynamic *current-session*
+(def ^:dynamic *current-session*
+  "Dynamic var bound to the current session. Don't use this directly, call
+  (current-session) instead."
   (atom (make-session)))
 
 (defn current-session
