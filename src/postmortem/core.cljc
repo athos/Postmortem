@@ -6,7 +6,7 @@
             [postmortem.session :as session])
   #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
-                      [postmortem.core :refer [save spy> spy>>]])))
+                      [postmortem.core :refer [save]])))
 
 (defn session?
   "Returns true if x is a session."
@@ -117,6 +117,29 @@
    (proto/-reset! session)
    nil))
 
+(defn spy>
+  "Saves a value to the log entry corresponding to the specified key and returns
+  the value as-is.
+  If a transducer xform is specified, it will be applied when adding
+  the value to the log entry. Defaults to clojure.core/identity.
+  If session is specified, the value will be added to the log entry in that
+  session. Otherwise, the value will be added to the log entry in the current
+  session.
+  spy> is intended to be used in combination with thread-first macros.
+  In thread-last contexts, use spy>> instead."
+  ([x key] (spy> x key identity))
+  ([x key xform] (spy> x (current-session) key xform))
+  ([x session key xform]
+   (proto/-add-item! session key xform x)
+   x))
+
+(defn spy>>
+  "A version of spy> intended to be used in combination with thread-last macros.
+  See the docstring of spy> for more details."
+  ([key x] (spy>> key identity x))
+  ([key xform x] (spy>> (current-session) key xform x))
+  ([session key xform x] (spy> x session key xform)))
+
 (macros/deftime
 
   (defmacro save
@@ -137,27 +160,5 @@
        `(do
           (proto/-add-item! ~session ~key ~xform ~vals)
           nil))))
-
-  (defmacro spy>
-    "Saves a value to the log entry corresponding to the specified key and returns
-  the value as-is.
-  If a transducer xform is specified, it will be applied when adding
-  the value to the log entry. Defaults to clojure.core/identity.
-  If session is specified, the value will be added to the log entry in that
-  session. Otherwise, the value will be added to the log entry in the current
-  session."
-    ([x key] `(spy> ~x ~key identity))
-    ([x key xform] `(spy> ~x (current-session) ~key ~xform))
-    ([x session key xform]
-     `(let [x# ~x]
-        (proto/-add-item! ~session ~key ~xform x#)
-        x#)))
-
-  (defmacro spy>>
-    "A version of spy> intended to be used with thread-last macros.
-  See the docstring of spy> for more details for the arguments."
-    ([key x] `(spy>> ~key identity ~x))
-    ([key xform x] `(spy>> (current-session) ~key ~xform ~x))
-    ([session key xform x] `(spy> ~x ~session ~key ~xform)))
 
   )
