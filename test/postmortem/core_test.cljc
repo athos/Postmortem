@@ -33,6 +33,7 @@
           {:n 1 :a 3 :b 5}
           {:n 0 :a 5 :b 8}]
          (pm/log-for `fib)))
+  (is (= {:n 0 :a 5 :b 8} (pm/last-log-for `fib)))
   (is (= {:add [{:a 0 :b 1}
                 {:a 1 :b 1}
                 {:a 1 :b 2}

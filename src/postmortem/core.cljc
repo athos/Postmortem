@@ -80,6 +80,17 @@
    (assert (session? session) "Invalid session specified")
    (get (logs* session #{key}) key)))
 
+(defn- last-item [entry]
+  (some->> entry rseq first))
+
+(defn last-log-for
+  "Completes log entry for the specified key and returns the last item in
+  the entry.
+  If session is omitted, the log will be pulled from the current session."
+  ([key] (last-log-for (current-session) key))
+  ([session key]
+   (last-item (log-for session key))))
+
 (defn logs-for
   "Completes log entries for the specified keys and returns a map of key to
   vector of logged items.
