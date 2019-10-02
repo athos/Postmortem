@@ -6,7 +6,7 @@
             [postmortem.session :as session])
   #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
-                      [postmortem.core :refer [save]])))
+                      [postmortem.core :refer [locals save]])))
 
 (defn session?
   "Returns true if x is a session."
@@ -163,10 +163,19 @@
 
 (macros/deftime
 
+  (defmacro locals
+    "Creates and returns a local environment map at the call site.
+  A local environment map is a map of keyword representing each local name
+  in the scope at that position, to the value that the local name is bound to."
+    [& names]
+    (->> (cond-> (macros/case :clj &env :cljs (:locals &env))
+           (seq names)
+           (select-keys (map (comp symbol name) names)))
+         (into {} (map (fn [[k _]] `[~(keyword k) ~k])))))
+
   (defmacro save
     "Saves a local environment map to the log entry corresponding to the specified
-  key. A local environment map is a map of keyword representing each local name
-  in the scope at that position, to the value that the local name is bound to.
+  key.
   If a transducer xform is specified, it will be applied when adding
   the environment map to the log entry. Defaults to clojure.core/identity.
   If session is specified, the environment map will be added to the log entry in
@@ -175,11 +184,6 @@
     ([key] `(save ~key identity))
     ([key xform] `(save (current-session) ~key ~xform))
     ([session key xform]
-     (let [vals (->> (macros/case :clj &env
-                                  :cljs (:locals &env))
-                     (into {} (map (fn [[k v]] `[~(keyword k) ~k]))))]
-       `(do
-          (proto/-add-item! ~session ~key ~xform ~vals)
-          nil))))
+     `(spy> (locals) ~session ~key ~xform)))
 
   )

@@ -1,7 +1,16 @@
 (ns postmortem.core-test
   (:require [clojure.test :refer [deftest is are testing]]
-            [postmortem.core :as pm :refer [save spy> spy>>]]
+            [postmortem.core :as pm :refer [locals save spy> spy>>]]
             [postmortem.xforms :as xf]))
+
+(deftest locals-test
+  (is (= {:x :a :y 42}
+         (let [x :a]
+           (let [y 42]
+             (locals)))))
+  (let [f (fn [n] (locals))]
+    (is (= {:n 42} (f 42))))
+  (is (= {:x :a} (let [x :a y 42] (locals :x)))))
 
 (defn add [a b]
   (save :add)
