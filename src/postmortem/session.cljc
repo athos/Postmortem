@@ -48,7 +48,11 @@
 
 (defn- collect-logs [logs keys]
   (->> keys
-       (reduce (fn [m k] (assoc! m k (-> logs (get k) (get :items)))) (transient {}))
+       (reduce (fn [m k]
+                 (if-let [items (-> logs (get k) (get :items))]
+                   (assoc! m k items)
+                   m))
+               (transient {}))
        persistent!))
 
 (deftype ThreadUnsafeSession [xform ^:volatile-mutable logs]
