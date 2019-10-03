@@ -51,14 +51,14 @@
   ([interval] (debounce identity interval))
   ([f interval]
    (fn [rf]
-     (let [prev (volatile! nil)]
+     (let [prev (volatile! ::none)]
        (fn
          ([] (rf))
          ([result] (rf result))
          ([acc input]
           (let [p @prev
                 v (f input)]
-            (if (or (nil? p) (>= (- v p) interval))
+            (if (or (= p ::none) (>= (- v p) interval))
               (do (vreset! prev v)
                   (rf acc input))
               acc))))))))
