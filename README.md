@@ -18,7 +18,7 @@ Add the following to your project `:dependencies`:
 
 (defn fib [n]
   (loop [n n a 0 b 1]
-    (pm/save :fib)
+    (pm/dump :fib)
     (if (= n 0)
       a
       (recur (dec n) b (+ a b)))))
@@ -34,7 +34,7 @@ Add the following to your project `:dependencies`:
 
 (defn fib2 [n]
   (loop [n n a 0 b 1]
-    (pm/save :fib2 (filter #(even? (:n %))))
+    (pm/dump :fib2 (filter #(even? (:n %))))
     (if (= n 0)
       a
       (recur (dec n) b (+ a b)))))
@@ -47,7 +47,7 @@ Add the following to your project `:dependencies`:
 
 (defn fib3 [n]
   (loop [n n a 0 b 1]
-    (pm/save :fib3
+    (pm/dump :fib3
              (comp (map-indexed #(assoc %2 :id %1))
                    (xf/take-last 3)))
     (if (= n 0)

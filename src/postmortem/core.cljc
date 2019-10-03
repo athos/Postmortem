@@ -6,7 +6,7 @@
             [postmortem.session :as session])
   #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
-                      [postmortem.core :refer [locals save]])))
+                      [postmortem.core :refer [locals dump]])))
 
 (defn session?
   "Returns true if x is a session."
@@ -173,7 +173,7 @@
            (select-keys (map (comp symbol name) names)))
          (into {} (map (fn [[k _]] `[~(keyword k) ~k])))))
 
-  (defmacro save
+  (defmacro dump
     "Saves a local environment map to the log entry corresponding to the specified
   key.
   If a transducer xform is specified, it will be applied when adding
@@ -181,8 +181,8 @@
   If session is specified, the environment map will be added to the log entry in
   that session. Otherwise, the environment map will be added to the log entry in
   the current session."
-    ([key] `(save ~key identity))
-    ([key xform] `(save (current-session) ~key ~xform))
+    ([key] `(dump ~key identity))
+    ([key xform] `(dump (current-session) ~key ~xform))
     ([session key xform]
      `(spy> (locals) ~session ~key ~xform)))
 

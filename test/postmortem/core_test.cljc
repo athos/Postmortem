@@ -1,6 +1,6 @@
 (ns postmortem.core-test
   (:require [clojure.test :refer [deftest is are testing]]
-            [postmortem.core :as pm :refer [locals save spy> spy>>]]
+            [postmortem.core :as pm :refer [locals dump spy> spy>>]]
             [postmortem.xforms :as xf]))
 
 (deftest locals-test
@@ -13,12 +13,12 @@
   (is (= {:x :a} (let [x :a y 42] (locals :x)))))
 
 (defn add [a b]
-  (save :add)
+  (dump :add)
   (spy>> :add-result (+ a b)))
 
 (defn fib [n]
   (loop [n n a 0 b 1]
-    (save `fib)
+    (dump `fib)
     (if (= n 0)
       a
       (recur (dec n) b (add a b)))))
@@ -86,7 +86,7 @@
   (are [key xform expected]
       (let [f (fn [n]
                 (loop [n n]
-                  (save key xform)
+                  (dump key xform)
                   (if (= n 0)
                     n
                     (recur (dec n)))))]
@@ -110,9 +110,9 @@
     (let [sess1 (pm/make-session)
           sess2 (pm/make-session)
           f1 (fn [n]
-               (save sess1 :f (map :n)))
+               (dump sess1 :f (map :n)))
           f2 (fn [n]
-               (save sess2 :f (map :n)))]
+               (dump sess2 :f (map :n)))]
       (f1 5)
       (f2 100)
       (f1 10)
@@ -123,13 +123,13 @@
   (testing "sessions can hold base transducer"
     (let [sess (pm/make-session (xf/take-last 3))
           f (fn [n]
-              (save sess :f-n (map :n))
+              (dump sess :f-n (map :n))
               (spy>> sess :f-ret (filter even?) (inc n)))]
       (dotimes [i 10] (f i))
       (is (= [7 8 9] (pm/log-for sess :f-n)))
       (is (= [8 10] (pm/log-for sess :f-ret)))))
   (testing "set-current-session! destructively changes current session"
-    (let [f (fn [x] (pm/save :f))
+    (let [f (fn [x] (dump :f))
           old (pm/current-session)
           sess (pm/make-session)]
       (pm/set-current-session! sess)
@@ -140,7 +140,7 @@
       (pm/set-current-session! old)
       (is (= {} (pm/logs)))))
   (testing "with-session temporarily changes current session"
-    (let [f (fn [x] (pm/save :f))
+    (let [f (fn [x] (dump :f))
           sess (pm/make-session)]
       (pm/with-session sess
         (f 42))
@@ -170,7 +170,7 @@
 
    (deftest ^:eftest/synchronized synchronized-session-test
      (let [sess (pm/make-synchronized-session)
-           f (fn [n] (save sess :f (comp (map-indexed #(assoc %2 :i %1))
+           f (fn [n] (dump sess :f (comp (map-indexed #(assoc %2 :i %1))
                                          (xf/take-last))))
            futures [(future (dotimes [i 10000] (f i)))
                     (future (dotimes [i 10000] (f i)))]]
