@@ -88,7 +88,7 @@
           (finally
             (.unlock lock#))))))
 
-(defn null-session []
+(defn void-session []
   (reify
     proto/ISession
     proto/ILogStorage

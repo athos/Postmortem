@@ -152,13 +152,13 @@
       (is (= {} (pm/logs sess)))
       (pm/reset!))))
 
-(deftest null-session-test
-  (testing "null session never logs anything"
-    (let [sess (pm/null-session)]
+(deftest void-session-test
+  (testing "void session never logs anything"
+    (let [sess (pm/void-session)]
       (pm/spy>> sess :sum identity (+ 1 2))
       (is (= {} (pm/logs sess)))))
-  (testing "null session never triggers transducers"
-    (let [sess (pm/null-session)
+  (testing "void session never triggers a call to transducer"
+    (let [sess (pm/void-session)
           f (fn [x] (pm/spy>> sess :f (comp (map (fn [x] (prn :pre x) x))
                                             (xf/take-last)
                                             (map (fn [x] (prn :post x) x)))

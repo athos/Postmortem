@@ -33,10 +33,10 @@
 
 (def
   ^{:arglists '([])
-    :doc "Returns a null session, which logs nothing and never triggers a call
+    :doc "Returns a void session, which logs nothing and never triggers a call
   to transducer. It's useful to disable logging entirely."}
-  null-session
-  (let [session (session/null-session)]
+  void-session
+  (let [session (session/void-session)]
     (fn [] session)))
 
 (def ^:dynamic *current-session*
