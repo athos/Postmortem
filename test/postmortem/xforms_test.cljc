@@ -60,6 +60,25 @@
     []
     []))
 
+(deftest dedupe-by-test
+  (are [xform coll expected]
+      (= expected (into [] xform coll))
+    (xf/dedupe-by :x)
+    []
+    []
+
+    (xf/dedupe-by :x)
+    [{:x 0}]
+    [{:x 0}]
+
+    (xf/dedupe-by :x)
+    [{:x 0 :y 1} {:x 0 :y 2} {:x 1 :y 2} {:x 4 :y 3} {:x 4 :y 5}]
+    [{:x 0 :y 1} {:x 1 :y 2} {:x 4 :y 3}]
+
+    (xf/dedupe-by identity)
+    [1 1 2 4 4 4 5]
+    [1 2 4 5]))
+
 (deftest debounce-test
   (are [xform coll expected]
       (= expected (into [] xform coll))

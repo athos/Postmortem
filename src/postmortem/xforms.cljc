@@ -33,6 +33,20 @@
           (vswap! vals conj! input)
           acc))))))
 
+(defn dedupe-by [f]
+  (fn [rf]
+    (let [prev (volatile! ::none)]
+      (fn
+        ([] (rf))
+        ([result] (rf result))
+        ([acc input]
+         (let [p @prev
+               v (f input)]
+           (if (= p v)
+             acc
+             (do (vreset! prev v)
+                 (rf acc input)))))))))
+
 (defn debounce
   ([interval] (debounce identity interval))
   ([f interval]
