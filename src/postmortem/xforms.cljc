@@ -1,6 +1,30 @@
 (ns postmortem.xforms
   (:refer-clojure :exclude [take-last drop-last]))
 
+(defn take-until [pred]
+  (fn [rf]
+    (let [pred' (complement pred)]
+      (fn
+        ([] (rf))
+        ([result] (rf result))
+        ([result input]
+         (if (pred' input)
+           (rf result input)
+           (reduced (rf result input))))))))
+
+(defn drop-until [pred]
+  (fn [rf]
+    (let [dv (volatile! true)]
+      (fn
+        ([] (rf))
+        ([result] (rf result))
+        ([result input]
+         (if @dv
+           (do (when (pred input)
+                 (vreset! dv false))
+               result)
+           (rf result input)))))))
+
 (defn take-last
   ([] (take-last 1))
   ([^long n]

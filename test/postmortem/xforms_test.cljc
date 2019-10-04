@@ -2,6 +2,52 @@
   (:require [postmortem.xforms :as xf]
             [clojure.test :refer [deftest are]]))
 
+(deftest take-until-test
+  (are [xform coll expected]
+      (= expected (into [] xform coll))
+    (xf/take-until even?)
+    [1 3 5 6 7 8]
+    [1 3 5 6]
+
+    (xf/take-until zero?)
+    [3 2 1 0 1 2 3 0]
+    [3 2 1 0]
+
+    (xf/take-until odd?)
+    [2 4 6 8]
+    [2 4 6 8]
+
+    (xf/take-until zero?)
+    [3 2 1 0]
+    [3 2 1 0]
+
+    (xf/take-until zero?)
+    []
+    []))
+
+(deftest drop-until-test
+  (are [xform coll expected]
+      (= expected (into [] xform coll))
+    (xf/drop-until even?)
+    [1 3 5 6 7 8]
+    [7 8]
+
+    (xf/drop-until zero?)
+    [3 2 1 0 1 2 3 0]
+    [1 2 3 0]
+
+    (xf/drop-until odd?)
+    [1 3 5 7]
+    [3 5 7]
+
+    (xf/drop-until zero?)
+    [3 2 1]
+    []
+
+    (xf/drop-until zero?)
+    []
+    []))
+
 (deftest take-last-test
   (are [xform coll expected]
       (= expected (into [] xform coll))
