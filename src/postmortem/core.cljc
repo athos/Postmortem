@@ -190,3 +190,77 @@
      `(spy> (locals) ~session ~key ~xform)))
 
   )
+
+(defonce ^:private instrumented-vars (atom {}))
+
+(defn- logging-fn [f fname {:keys [session xform]}]
+  (let [xform (or xform identity)]
+    (fn [& args]
+      (let [session (or session (current-session))]
+        (spy>> session fname xform {:args args})
+        (let [thrown (volatile! nil)
+              ret (try
+                    (apply f args)
+                    (catch Throwable t
+                      (vreset! thrown t)))]
+          (if @thrown
+            (do (spy>> session fname xform {:args args :err @thrown})
+                (throw @thrown))
+            (do (spy>> session fname xform {:args args :ret ret})
+                ret)))))))
+
+#?(:clj
+   (do
+
+     (defn- ->sym [v]
+       (let [meta (meta v)]
+         (symbol (name (ns-name (:ns meta))) (name (:name meta)))))
+
+     (defn- collectionize [x]
+       (if (symbol? x)
+         [x]
+         x))
+
+     (defn- instrument-1 [sym {:keys [session] :as opts}]
+       (when-let [v (resolve sym)]
+         (let [{:keys [raw wrapped]} (get @instrumented-vars v)
+               current @v
+               to-wrapped (if (= wrapped current) raw current)
+               instrumented (logging-fn to-wrapped sym opts)]
+           (alter-var-root v (constantly instrumented))
+           (swap! instrumented-vars assoc v
+                  {:raw to-wrapped :wrapped instrumented})
+           (->sym v))))
+
+     (defn- unstrument-1 [sym]
+       (when-let [v (resolve sym)]
+         (when-let [{:keys [raw wrapped]} (get @instrumented-vars v)]
+           (swap! instrumented-vars dissoc v)
+           (let [current @v]
+             (when (= wrapped current)
+               (alter-var-root v (constantly raw))
+               (->sym v))))))
+
+     (defn instrument
+       ([sym-or-syms] (instrument sym-or-syms {}))
+       ([sym-or-syms opts]
+        (locking instrumented-vars
+          (into []
+                (comp (filter symbol?)
+                      (distinct)
+                      (map #(instrument-1 % opts))
+                      (remove nil?))
+                (collectionize sym-or-syms)))))
+
+     (defn unstrument
+       ([] (unstrument (map ->sym (keys @instrumented-vars))))
+       ([sym-or-syms]
+        (locking instrumented-vars
+          (into []
+                (comp (filter symbol?)
+                      (distinct)
+                      (map unstrument-1)
+                      (remove nil?))
+                (collectionize sym-or-syms)))))
+
+     ))
