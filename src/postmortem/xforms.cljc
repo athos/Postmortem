@@ -71,6 +71,10 @@
              (do (vreset! prev v)
                  (rf acc input)))))))))
 
+(defn- abs [x]
+  #?(:clj (Math/abs x)
+     :cljs (js/Math.abs x)))
+
 (defn debounce
   ([interval] (debounce identity interval))
   ([f interval]
@@ -82,7 +86,8 @@
          ([acc input]
           (let [p @prev
                 v (f input)]
-            (if (or (= p ::none) (>= (- v p) interval))
+            (if (or (= p ::none)
+                    (>= (abs (- v p)) interval))
               (do (vreset! prev v)
                   (rf acc input))
               acc))))))))
