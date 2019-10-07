@@ -152,6 +152,20 @@
       (is (= {} (pm/logs sess)))
       (pm/reset!))))
 
+(deftest unsafe-session-test
+  (testing "unsafe-session can be used just as ordinary sessions in a single-threaded context"
+    (let [sess (pm/make-unsafe-session)]
+      (dotimes [i 10]
+        (pm/spy>> sess :i identity i))
+      (is (= [0 1 2 3 4 5 6 7 8 9] (pm/log-for sess :i)))))
+  #?(:clj
+     (testing "more than one simultaneous updates to a unsafe-session won't be synchronized"
+       (let [sess (pm/make-unsafe-session)
+             f (fn [] (pm/dump sess :f (map-indexed (fn [i _] i))))]
+         (run! deref [(future (f)) (future (f))])
+         (is (= [0] ;; ideally, it must be [0 1]
+                (pm/log-for sess :f)))))))
+
 (deftest void-session-test
   (testing "void session never logs anything"
     (let [sess (pm/void-session)]
@@ -168,8 +182,8 @@
 
 #?(:clj
 
-   (deftest ^:eftest/synchronized synchronized-session-test
-     (let [sess (pm/make-synchronized-session)
+   (deftest ^:eftest/synchronized synchronization-test
+     (let [sess (pm/make-session)
            f (fn [n] (dump sess :f (comp (map-indexed #(assoc %2 :i %1))
                                          (xf/take-last))))
            futures [(future (dotimes [i 10000] (f i)))

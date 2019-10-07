@@ -13,23 +13,26 @@
   [x]
   (satisfies? proto/ISession x))
 
-(defn make-session
-  "Creates and returns a new session.
-  Note that sessions created by this function are thread-unsafe.
-  If updates to a session need to be synchronized among multithreads,
-  use make-synchronized-session instead."
-  ([] (make-session identity))
+(defn make-unsafe-session
+  "Creates and returns a new thread-unsafe session.
+  Updates to a thread-unsafe session won't be synchronized among mulithreads.
+  If all updates to a session need to be synchronized, use make-session instead.
+  In ClojureScript, make-unsafe-session is exactly the same as make-session."
+  ([] (make-unsafe-session identity))
   ([xform]
    (session/->ThreadUnsafeSession xform {})))
 
-#?(:clj
-   (defn make-synchronized-session
-     "Creates and returns a new synchronized session.
-  A synchronized session is almost same as an ordinary session except that all
-  updates to a synchronized session will be synchronized."
-     ([] (make-synchronized-session identity))
-     ([xform]
-      (session/synchronized (make-session xform)))))
+(defn make-session
+  "Creates and returns a new session.
+  Sessions created by this function are thread-safe and so all updates to them
+  will be synchronized. Only if it is guaranteed that no more than one updates
+  never happen simultaneously, make-unsafe-session can be used instead for better
+  performance.
+  In ClojureScript, make-session is exactly the same as make-unsafe-session."
+  ([] (make-session identity))
+  ([xform]
+   #?(:clj (session/synchronized (make-unsafe-session xform))
+      :cljs (make-unsafe-session xform))))
 
 (def
   ^{:arglists '([])
