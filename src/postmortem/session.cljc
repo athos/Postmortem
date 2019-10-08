@@ -1,5 +1,6 @@
 (ns postmortem.session
-  (:require [postmortem.protocols :as proto])
+  (:require [postmortem.protocols :as proto]
+            [postmortem.utils :refer [with-lock]])
   #?(:clj (:import [java.util.concurrent.locks ReentrantLock])))
 
 (defn- xf->rf
@@ -77,16 +78,6 @@
     (set! logs (complete-logs! logs (set (keys logs)))))
   (-complete! [this keys]
     (set! logs (complete-logs! logs keys))))
-
-#?(:clj
-   ;; to avoid using the locking macro, which is problematic in some environments (see CLJ-1472)
-   (defmacro with-lock [lock & body]
-     `(let [lock# ~lock]
-        (.lock lock#)
-        (try
-          ~@body
-          (finally
-            (.unlock lock#))))))
 
 (defn void-session []
   (reify
