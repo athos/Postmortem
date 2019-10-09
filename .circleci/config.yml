@@ -27,7 +27,7 @@ jobs:
 
       - run:
           name: check
-          command: clojure -A:check
+          command: clojure -A:check:cljs
 
       - run:
           name: test CLJ
@@ -40,5 +40,5 @@ jobs:
       - run:
           name: test coverage
           command: |
-            clojure -A:test:coverage
+            clojure -A:test:coverage:cljs
             bash <(curl -s https://codecov.io/bash)
