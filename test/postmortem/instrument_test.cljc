@@ -1,0 +1,63 @@
+(ns postmortem.instrument-test
+  (:require [clojure.test :refer [deftest is testing]]
+            [postmortem.core :as pm]
+            [postmortem.instrument :as pi]
+            [postmortem.xforms :as xf]))
+
+(def err (ex-info "error!!" {}))
+
+(defn f [x]
+  (if (= x 0)
+    (throw err)
+    (inc x)))
+
+(deftest ^:eftest/synchronized basic-workflow-test
+  (is (= [`f] (pi/instrument `f)))
+  (f 1)
+  (f 2)
+  (f 3)
+  (is (= '[{:args (1)} {:args (1) :ret 2}
+           {:args (2)} {:args (2) :ret 3}
+           {:args (3)} {:args (3) :ret 4}]
+         (pm/log-for `f)))
+  (pm/reset!)
+
+  (try (f -1) (f 0) (catch #?(:clj Throwable :cljs :default) _))
+  (is (= `[{:args (-1)} {:args (-1) :ret 0} {:args (0)} {:args (0) :err ~err}]
+         (pm/log-for `f)))
+  (pm/reset!)
+
+  (is (= [`f] (pi/unstrument)))
+  (f 1)
+  (is (= nil (pm/log-for `f)))
+  (pm/reset!))
+
+(deftest ^:eftest/synchronized transducers-test
+  (is (= [`f] (pi/instrument `f {:xform (filter (fn [{[x] :args}] (odd? x)))})))
+  (mapv f [1 2 3 4 5])
+  (is (= '[{:args (1)} {:args (1) :ret 2}
+           {:args (3)} {:args (3) :ret 4}
+           {:args (5)} {:args (5) :ret 6}]
+         (pm/log-for `f)))
+  (pm/reset!)
+
+  (pi/instrument `f {:xform (xf/take-last 3)})
+  (mapv f [1 2 3 4 5])
+  (is (= '[{:args (4) :ret 5} {:args (5)} {:args (5) :ret 6}]
+         (pm/log-for `f)))
+  (pm/reset!)
+
+  (is (= [`f] (pi/unstrument `f))))
+
+(deftest ^:eftest/synchronized session-test
+  (let [sess (pm/make-session)]
+    (is (= [`f] (pi/instrument `f {:session sess})))
+    (f 1)
+    (f 2)
+    (f 3)
+    (is (= '[{:args (1)} {:args (1) :ret 2}
+             {:args (2)} {:args (2) :ret 3}
+             {:args (3)} {:args (3) :ret 4}]
+           (pm/log-for sess `f)))
+    (is (= nil (pm/log-for `f)))
+    (is (= [`f] (pi/unstrument)))))
