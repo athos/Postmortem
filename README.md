@@ -3,7 +3,7 @@
 [![CircleCI](https://circleci.com/gh/athos/postmortem.svg?style=shield)](https://circleci.com/gh/athos/postmortem)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
 
-A tiny programmable debugging logger for Clojure(Script), powered by transducers
+A tiny value-oriented debugging logger for Clojure(Script), powered by transducers
 
 ## Installation
 
