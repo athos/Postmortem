@@ -26,10 +26,15 @@
              (when raw# (set! ~s raw#))
              '~var-name)))))
 
-  (defn- collectionize [x]
-    (cond (symbol? x) [x]
-          (and (seq? x) (= (first x) 'quote)) (recur (second x))
-          :else x))
+  (defn- form->sym-or-syms [sym-or-syms]
+    (if (::no-eval (meta sym-or-syms))
+      (second sym-or-syms)
+      (eval sym-or-syms)))
+
+  (defn- sym-or-syms->syms [sym-or-syms]
+    (if (symbol? sym-or-syms)
+      (list sym-or-syms)
+      sym-or-syms))
 
   (defmacro instrument
     ([sym-or-syms] `(instrument ~sym-or-syms {}))
@@ -38,16 +43,16 @@
        `(let [~opts-sym ~opts]
           (into [] (comp (map (fn [f#] (f#)))
                          (remove nil?))
-                [~@(for [sym (collectionize sym-or-syms)
+                [~@(for [sym (sym-or-syms->syms (form->sym-or-syms sym-or-syms))
                          :when (symbol? sym)]
                      `#(instrument-1 '~sym ~opts-sym))])))))
 
   (defmacro unstrument
-    ([] `(unstrument [~@@instrumented-var-names]))
+    ([] `(unstrument ^::no-eval '[~@@instrumented-var-names]))
     ([sym-or-syms]
      `(into [] (comp (map (fn [f#] (f#)))
                      (remove nil?))
-            [~@(for [sym (collectionize sym-or-syms)
+            [~@(for [sym (sym-or-syms->syms (form->sym-or-syms sym-or-syms))
                      :when (symbol? sym)]
                  `#(unstrument-1 '~sym))])))
 
