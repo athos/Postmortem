@@ -61,3 +61,48 @@
            (pm/log-for sess `f)))
     (is (= nil (pm/log-for `f)))
     (is (= [`f] (pi/unstrument)))))
+
+(declare h)
+
+(defn g [x]
+  (if (= x 0)
+    0
+    (+ 2 (h (dec x)))))
+
+(defn h [x]
+  (if (= x 0)
+    0
+    (* 3 (g (dec x)))))
+
+(deftest ^:eftest/synchronized multiple-fns-test
+  (testing "instrument and unstrument accepts a coll of symbols"
+    (is (= `[g h] (pi/instrument `[g h])))
+    (g 3)
+    (is (= '[{:args (3)} {:args (1)} {:args (1) :ret 2} {:args (3) :ret 8}]
+           (pm/log-for `g)))
+    (is (= '[{:args (2)} {:args (0)} {:args (0) :ret 0} {:args (2) :ret 6}]
+           (pm/log-for `h)))
+    (pm/reset!)
+    (is (= `[g h] (pi/unstrument `[g h]))))
+
+  (testing "xform will be applied to functions that were instrumented at once"
+    (pi/instrument `[g h] {:xform (filter :ret)})
+    (g 3)
+    (is (= '[{:args (1) :ret 2} {:args (3) :ret 8}]
+           (pm/log-for `g)))
+    (is (= '[{:args (0) :ret 0} {:args (2) :ret 6}]
+           (pm/log-for `h)))
+    (pm/reset!)
+    (is (= `[g h] (pi/unstrument))))
+
+  (testing "session will be shared among functions that were instrumented at once"
+    (let [sess (pm/make-session)]
+      (pi/instrument `[g h] {:session sess})
+      (g 3)
+      (is (= '[{:args (3)} {:args (1)} {:args (1) :ret 2} {:args (3) :ret 8}]
+             (pm/log-for sess `g)))
+      (is (= '[{:args (2)} {:args (0)} {:args (0) :ret 0} {:args (2) :ret 6}]
+             (pm/log-for sess `h)))
+      (is (= nil (pm/log-for `g)))
+      (is (= nil (pm/log-for `h)))
+      (pi/unstrument))))
