@@ -161,7 +161,7 @@
   #?(:clj
      (testing "more than one simultaneous updates to a unsafe-session won't be synchronized"
        (let [sess (pm/make-unsafe-session)
-             f (fn [] (pm/dump sess :f (map-indexed (fn [i _] i))))]
+             f (fn [] (pm/dump sess :f (map-indexed (fn [i _] (Thread/sleep 500) i))))]
          (run! deref [(future (f)) (future (f))])
          (is (= [0] ;; ideally, it must be [0 1]
                 (pm/log-for sess :f)))))))
