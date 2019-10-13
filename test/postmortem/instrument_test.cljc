@@ -79,7 +79,7 @@
     (is (= '[{:args (0) :ret 0} {:args (2) :ret 6}]
            (pm/log-for `h)))
     (pm/reset!)
-    (is (= `[g h] (pi/unstrument))))
+    (is (= `#{g h} (set (pi/unstrument)))))
 
   (testing "session will be shared among functions that were instrumented at once"
     (let [sess (pm/make-session)]
