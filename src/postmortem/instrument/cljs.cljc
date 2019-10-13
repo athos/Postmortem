@@ -1,5 +1,6 @@
 (ns postmortem.instrument.cljs
   (:require [cljs.analyzer.api :as ana]
+            [clojure.string :as str]
             #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.instrument.core :as instr])
   #?(:cljs (:require-macros [net.cgrand.macrovich :as macros]
@@ -13,8 +14,8 @@
     (when-let [v (ana/resolve &env s)]
       (let [var-name (:name v)]
         (swap! instrumented-var-names conj var-name)
-        `(let [instrumented# (instr/instrument-1* '~s (var ~s) ~opts)]
-           (when instrumented# (set! ~s instrumented#))
+        `(when-let [instrumented# (instr/instrument-1* '~s (var ~s) ~opts)]
+           (set! ~s instrumented#)
            '~var-name))))
 
   (defmacro unstrument-1 [[_ s]]
@@ -22,8 +23,8 @@
       (let [var-name (:name v)]
         (when (@instrumented-var-names var-name)
           (swap! instrumented-var-names disj var-name)
-          `(let [raw# (instr/unstrument-1* '~s (var ~s))]
-             (when raw# (set! ~s raw#))
+          `(when-let [raw# (instr/unstrument-1* '~s (var ~s))]
+             (set! ~s raw#)
              '~var-name)))))
 
   (defn- form->sym-or-syms [sym-or-syms]
@@ -31,10 +32,21 @@
       (second sym-or-syms)
       (eval sym-or-syms)))
 
-  (defn- sym-or-syms->syms [sym-or-syms]
+  (defn- collectionize [sym-or-syms]
     (if (symbol? sym-or-syms)
       (list sym-or-syms)
       sym-or-syms))
+
+  (defn- sym-or-syms->syms [sym-or-syms]
+    (into []
+          (mapcat (fn [sym]
+                    (if (and (str/includes? (str sym) ".")
+                             (ana/find-ns sym))
+                      (for [[_ v] (ana/ns-interns sym)
+                            :when (not (:macro v))]
+                        (:name v))
+                      [sym])))
+          (collectionize sym-or-syms)))
 
   (defmacro instrument
     ([sym-or-syms] `(instrument ~sym-or-syms {}))

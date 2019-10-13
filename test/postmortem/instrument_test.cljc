@@ -2,14 +2,8 @@
   (:require [clojure.test :refer [deftest is testing]]
             [postmortem.core :as pm]
             [postmortem.instrument :as pi]
+            [postmortem.test-ns :as test-ns :refer [f g h]]
             [postmortem.xforms :as xf]))
-
-(def err (ex-info "error!!" {}))
-
-(defn f [x]
-  (if (= x 0)
-    (throw err)
-    (inc x)))
 
 (deftest ^:eftest/synchronized basic-workflow-test
   (is (= [`f] (pi/instrument `f)))
@@ -23,7 +17,7 @@
   (pm/reset!)
 
   (try (f -1) (f 0) (catch #?(:clj Throwable :cljs :default) _))
-  (is (= `[{:args (-1)} {:args (-1) :ret 0} {:args (0)} {:args (0) :err ~err}]
+  (is (= `[{:args (-1)} {:args (-1) :ret 0} {:args (0)} {:args (0) :err ~test-ns/err}]
          (pm/log-for `f)))
   (pm/reset!)
 
@@ -62,18 +56,6 @@
     (is (= nil (pm/log-for `f)))
     (is (= [`f] (pi/unstrument)))))
 
-(declare h)
-
-(defn g [x]
-  (if (= x 0)
-    0
-    (+ 2 (h (dec x)))))
-
-(defn h [x]
-  (if (= x 0)
-    0
-    (* 3 (g (dec x)))))
-
 (deftest ^:eftest/synchronized multiple-fns-test
   (testing "instrument and unstrument accepts a coll of symbols"
     (is (= `[g h] (pi/instrument `[g h])))
@@ -84,6 +66,10 @@
            (pm/log-for `h)))
     (pm/reset!)
     (is (= `[g h] (pi/unstrument `[g h]))))
+
+  (testing "If a symbol identifies ns, all symbols in that ns will be enumerated"
+    (is (= `#{test-ns/f test-ns/g test-ns/h} (set (pi/instrument 'postmortem.test-ns))))
+    (is (= `#{test-ns/f test-ns/g test-ns/h} (set (pi/unstrument 'postmortem.test-ns)))))
 
   (testing "xform will be applied to functions that were instrumented at once"
     (pi/instrument `[g h] {:xform (filter :ret)})

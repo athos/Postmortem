@@ -22,11 +22,12 @@
 (defn instrument-1* [sym v opts]
   (let [{:keys [raw wrapped]} (get @instrumented-vars v)
         current @v
-        to-wrapped (if (= wrapped current) raw current)
-        instrumented (logging-fn to-wrapped sym opts)]
-    (swap! instrumented-vars assoc v
-           {:raw to-wrapped :wrapped instrumented})
-    instrumented))
+        to-wrapped (if (= wrapped current) raw current)]
+    (when (fn? to-wrapped)
+      (let [instrumented (logging-fn to-wrapped sym opts)]
+        (swap! instrumented-vars assoc v
+               {:raw to-wrapped :wrapped instrumented})
+        instrumented))))
 
 (defn unstrument-1* [sym v]
   (when-let [{:keys [raw wrapped]} (get @instrumented-vars v)]
