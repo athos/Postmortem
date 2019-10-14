@@ -27,7 +27,7 @@ jobs:
 
       - run:
           name: check
-          command: clojure -A:check
+          command: clojure -A:check:cljs
 
       - run:
           name: test CLJ

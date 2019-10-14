@@ -12,7 +12,8 @@
                   :main-opts ["-m" "postmortem.test-runner"]}
            :coverage {:extra-deps {cloverage {:mvn/version "1.1.2"}}
                       :main-opts ["-m" "cloverage.coverage"
-                                  "-p" "src" "-s" "test" "--codecov"]}
+                                  "-p" "src" "-s" "test" "--codecov"
+                                  "--ns-exclude-regex" "postmortem.instrument(.cljs)?"]}
            :test-cljs {:main-opts ["-m" "cljs.main" "-re" "node"
                                    "-m" "postmortem.test-runner"]}
            :1.9 {:override-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}}}
