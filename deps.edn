@@ -16,4 +16,5 @@
                                   "--ns-exclude-regex" "postmortem.instrument(.cljs)?"]}
            :test-cljs {:main-opts ["-m" "cljs.main" "-re" "node"
                                    "-m" "postmortem.test-runner"]}
+           :1.8 {:override-deps {org.clojure/clojure {:mvn/version "1.8.0"}}}
            :1.9 {:override-deps {org.clojure/clojure {:mvn/version "1.9.0"}}}}}
