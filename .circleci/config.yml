@@ -30,8 +30,16 @@ jobs:
           command: clojure -A:check:cljs
 
       - run:
-          name: test CLJ
+          name: test with CLJ 1.10
           command: clojure -A:test
+
+      - run:
+          name: test with CLJ 1.9
+          command: clojure -A:1.9:test
+
+      - run:
+          name: test with CLJ 1.8
+          command: clojure -A:1.8:test
 
       - run:
           name: test CLJS
