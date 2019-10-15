@@ -15,25 +15,25 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
 
 ## Table of Contents
 
-- Prerequisites
-- Installation
-- Usage
-  - Basic usage
-    - `spy>>` / `log-for` / `reset~for!` / `completed?`
-    - `logs` / `reset!`
-    - `spy>`
-    - `dump`
-  - Integration with transducers
-  - Sessions
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basic usage](#basic-usage)
+    - [`spy>>` / `log-for` / `reset~for!` / `completed?`](#spy--log-for--reset-for--completed)
+    - [`logs` / `reset!`](#logs--reset)
+    - [`spy>`](#spy)
+    - [`dump`](#dump)
+  - [Integration with transducers](#integration-with-transducers)
+  - [Sessions](#sessions)
     - `current-session`
     - `make-session`
     - `set-current-session!`
     - `with-session`
     - `void-session`
     - `make-unsafe-session`
-  - Instrumentation
+  - [Instrumentation](#instrumentation)
     - `instrument` & `unstrument`
-- Related works
+- [Related works](#related-works)
 
 ## Prerequisites
 
