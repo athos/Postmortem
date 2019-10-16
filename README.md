@@ -15,11 +15,12 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Basic usage](#basic-usage)
-    - [`spy>>` / `log-for` / `reset~for!` / `completed?`](#spy--log-for--reset-for--completed)
+    - [`spy>>` / `log-for`](#spy--log-for)
+    - [`reset-for!` / `completed?`](#reset-for--completed)
     - [`logs` / `reset!`](#logs--reset)
     - [`spy>`](#spy)
     - [`dump`](#dump)
@@ -35,7 +36,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
     - `instrument` & `unstrument`
 - [Related works](#related-works)
 
-## Prerequisites
+## Requirements
 
 - Clojure 1.8+, or
 - ClojureScript 1.10.238+, or
@@ -52,7 +53,12 @@ Add the following to your project `:dependencies`:
 
 ### Basic usage
 
-#### `spy>>` / `log-for` / `reset-for!` / `completed?`
+#### `spy>>` / `log-for`
+
+In Postmortem, `spy>>` and `log-for` are two of the most fundamental functions.
+`spy>>` is for logging data, and `log-for` is for retrieving logged data.
+
+`spy>>` is used as follows:
 
 ```clojure
 (require '[postmortem.core :as pm])
@@ -65,18 +71,56 @@ Add the following to your project `:dependencies`:
              (pm/spy>> :sum (+ i sum))))))
 ```
 
+`(spy>> <key> <expr>)` stores the value of the `<expr>` to a log entry for the key `<key>`
+every time the `spy>>` form is evaluated. In the above example, `(pm/spy>> :sum (+ i sum))`
+will store intermediate results of summation for each iteration to the log entry for
+the key `:sum`.
+
+`(log-for <key>)`, on the other hand, retrieves all the logged data stored
+at the log entry for the key `<key>`. In the following example, `(log-for :sum)` results in
+`[0 1 3 6 10 15]`, which is the intermediate summations from 0 to 5.
+
 ```clojure
-(sum 10)
-;=> 55
+(sum 5)
+;=> 15
 
 (pm/log-for :sum)
-;=> [0 1 3 6 10 15 21 28 36 45 55]
+;=> [0 1 3 6 10 15]
+```
+
+Any Clojure data can be used as a log entry key, such as keywords (as in the example),
+symbols, integers, strings or whatever you want to use. In fact, you can even use
+a runtime value as a key, and so log entry keys can be used to collect and group
+the log data.
+
+```clojure
+(defn f [n]
+  (pm/spy>> [:f (even? n)] (inc n)))
+
+(mapv f [1 2 3 4 5])
+;=> [2 3 4 5 6]
+(pm/log-for [:f true])
+;=> [3 5]
+(pm/log-for [:f false])
+;=> [2 4 6]
+```
+
+#### `reset-for!` / `completed?`
+
+To clear the logged data at the log entry `<key>`, call `(reset-for! <key>)`:
+
+```clojure
+(pm/log-for :sum)
+;=> [0 1 3 6 10 15]
 
 (pm/reset-for! :sum)
 
 (pm/log-for :sum)
 ;=> nil
 ```
+
+Note that once you call `log-for` for a key `k`, the log entry for `k` will be *completed*.
+A completed log entry will not be changed anymore until you call `reset-for!` for the log entry `k`:
 
 ```clojure
 (pm/spy>> :foobar 1)
@@ -97,6 +141,8 @@ Add the following to your project `:dependencies`:
 ;=> [3 4]
 ```
 
+You can check if a log entry has been completed using `(completed? <key>)`:
+
 ```clojure
 (pm/spy>> :barbaz 10)
 (pm/spy>> :barbaz 20)
@@ -115,6 +161,10 @@ Add the following to your project `:dependencies`:
 
 #### `logs` / `reset!`
 
+You can also logs data to more than one log entries at once. In such a case,
+`logs` is more useful to look into the whole log data than just calling
+`log-for` for each log entry:
+
 ```clojure
 (defn sum [n]
   (loop [i 0 sum 0]
@@ -124,12 +174,21 @@ Add the following to your project `:dependencies`:
       (recur (inc i)
              (pm/spy>> :sum (+ i sum))))))
 
-(sum 10)
-;=> 55
+(sum 5)
+;=> 15
 
 (pm/logs)
-;=> {:i [0 1 2 3 4 5 6 7 8 9 10 11],
-;    :sum [0 1 3 6 10 15 21 28 36 45 55]}
+;=> {:i [0 1 2 3 4 5 6],
+;    :sum [0 1 3 6 10 15]}
+```
+
+Similarly, `reset!` is useful to clear the whole log data at a time, rathar than
+clearing each individual log entry one by one calling `reset-for!`:
+
+```clojure
+(pm/logs)
+;=> {:i [0 1 2 3 4 5 6],
+;    :sum [0 1 3 6 10 15]}
 
 (pm/reset!)
 
@@ -139,12 +198,22 @@ Add the following to your project `:dependencies`:
 
 #### `spy>`
 
+`spy>>` has a look-alike cousin called `spy>`. They have no semantic difference,
+except that `spy>` is primarily intended to be used in *thread-first* contexts
+and therefore takes the log data as its first argument while `spy>>` is mainly
+intended to be used in *thread-last* contexts and therefore takes the log data
+as its last argument.
+
+The following two expressions behaves in exactly the same way:
+
 ```clojure
+;; thread-last version
 (->> (+ 1 2)
      (pm/spy>> :sum)
      (* 10)
      (pm/spy>> :prod))
 
+;; thread-first version
 (-> (+ 1 2)
     (pm/spy> :sum)
     (* 10)
@@ -152,6 +221,15 @@ Add the following to your project `:dependencies`:
 ```
 
 #### `dump`
+
+`dump` is another convenient tool to take snapshots of the values of local bindings.
+
+`(dump <key>)` stores local environment maps to the log entry `<key>`.
+A *local environment map* is a map of keywords representing local names in the scope
+at the callsite, to the value that the corresponding local name is bound to.
+
+The example code below shows how `dump` logs the values of the local bindings
+at the callsite (namely, `n`, `i` and `sum`) for each iteration.
 
 ```clojure
 (defn sum [n]
