@@ -204,7 +204,7 @@ and therefore takes the log data as its first argument while `spy>>` is mainly
 intended to be used in *thread-last* contexts and therefore takes the log data
 as its last argument.
 
-The following two expressions behaves in exactly the same way:
+The following two expressions behave in exactly the same way:
 
 ```clojure
 ;; thread-last version
