@@ -254,6 +254,99 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 
 ### Integration with transducers
 
+```clojure
+(defn sum1 [n]
+  (loop [i 0 sum 0]
+    (if (> i n)
+      sum
+      (recur (inc i)
+             (pm/spy>> :sum1 (+ i sum))))))
+
+(defn sum2 [n]
+  (loop [i 0 sum 0]
+    (if (> i n)
+      sum
+      (recur (inc i)
+             (pm/spy>> :sum2 (filter odd?) (+ i sum))))))
+
+(sum1 5) ;=> 15
+(sum2 5) ;=> 15
+
+(pm/log-for :sum1)
+;=> [0 1 3 6 10 15]
+
+(pm/log-for :sum2)
+;=> [1 3 15]
+```
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (map (fn [m] (select-keys m [:sum]))))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 5) ;=> 15
+
+(pm/log-for :sum)
+;=> [{:sum 0}
+;    {:sum 0}
+;    {:sum 1}
+;    {:sum 3}
+;    {:sum 6}
+;    {:sum 10}
+;    {:sum 15}]
+```
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (drop-while (fn [{:keys [sum]}] (< sum 5))))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 5) ;=> 15
+
+(pm/log-for :Sum)
+;=> [{:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10} {:n 5, :i 6, :sum 15}]
+```
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (take 3))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 5) ;=> 15
+
+(pm/log-for :sum)
+;=> [{:n 5, :i 0, :sum 0} {:n 5, :i 1, :sum 0} {:n 5, :i 2, :sum 1}]
+```
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (random-sample 0.3))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 5) ;=> 15
+
+(pm/log-for :sum)
+;=> [{:n 5, :i 0, :sum 0} {:n 5, :i 3, :sum 3}]
+
+(pm/reset!)
+(sum 5) ;=> 15
+
+(pm/log-for :sum)
+;=> [{:n 5, :i 2, :sum 1} {:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10}]
+```
+
 ### Sessions
 
 ### Instrumentation
