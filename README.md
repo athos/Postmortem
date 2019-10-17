@@ -78,7 +78,7 @@ the key `:sum`.
 
 `(log-for <key>)`, on the other hand, retrieves all the logged data stored
 at the log entry for the key `<key>`. In the following example, `(log-for :sum)` results in
-`[0 1 3 6 10 15]`, which is the intermediate summations from 0 to 5.
+`[0 1 3 6 10 15]`, which is the intermediate summations from 0 to 5:
 
 ```clojure
 (sum 5)
@@ -89,9 +89,9 @@ at the log entry for the key `<key>`. In the following example, `(log-for :sum)`
 ```
 
 Any Clojure data can be used as a log entry key, such as keywords (as in the example),
-symbols, integers, strings or whatever you want to use. In fact, you can even use
-a runtime value as a key, and so log entry keys can be used to collect and group
-the log data.
+symbols, integers, strings or whatever .
+In fact, you can even use a runtime value as a key, not only a literal value, and
+thus log entry keys can be used to collect and group the log data:
 
 ```clojure
 (defn f [n]
@@ -161,9 +161,9 @@ You can check if a log entry has been completed using `(completed? <key>)`:
 
 #### `logs` / `reset!`
 
-You can also logs data to more than one log entries at once. In such a case,
-`logs` is more useful to look into the whole log data than just calling
-`log-for` for each log entry:
+You can also logs some data to more than one log entries at once.
+In such a case, `logs` is more useful to look into the whole log data
+than just calling `log-for` for each log entry:
 
 ```clojure
 (defn sum [n]
@@ -200,11 +200,11 @@ clearing each individual log entry one by one calling `reset-for!`:
 
 `spy>>` has a look-alike cousin called `spy>`. They have no semantic difference,
 except that `spy>` is primarily intended to be used in *thread-first* contexts
-and therefore takes the log data as its first argument while `spy>>` is mainly
+and therefore takes the log data as its *first* argument while `spy>>` is mainly
 intended to be used in *thread-last* contexts and therefore takes the log data
-as its last argument.
+as its *last* argument.
 
-The following two expressions behave in exactly the same way:
+For example, the following two expressions behave in exactly the same way:
 
 ```clojure
 ;; thread-last version
@@ -229,7 +229,7 @@ A *local environment map* is a map of keywords representing local names in the s
 at the callsite, to the value that the corresponding local name is bound to.
 
 The example code below shows how `dump` logs the values of the local bindings
-at the callsite (namely, `n`, `i` and `sum`) for each iteration.
+at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 
 ```clojure
 (defn sum [n]
@@ -239,22 +239,17 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration.
       sum
       (recur (inc i) (+ i sum)))))
 
-(sum 10)
-;=> 55
+(sum 5)
+;=> 15
 
 (pm/log-for :sum)
-;=> [{:n 10, :i 0, :sum 0}
-;    {:n 10, :i 1, :sum 0}
-;    {:n 10, :i 2, :sum 1}
-;    {:n 10, :i 3, :sum 3}
-;    {:n 10, :i 4, :sum 6}
-;    {:n 10, :i 5, :sum 10}
-;    {:n 10, :i 6, :sum 15}
-;    {:n 10, :i 7, :sum 21}
-;    {:n 10, :i 8, :sum 28}
-;    {:n 10, :i 9, :sum 36}
-;    {:n 10, :i 10, :sum 45}
-;    {:n 10, :i 11, :sum 55}]
+;=> [{:n 5, :i 0, :sum 0}
+;    {:n 5, :i 1, :sum 0}
+;    {:n 5, :i 2, :sum 1}
+;    {:n 5, :i 3, :sum 3}
+;    {:n 5, :i 4, :sum 6}
+;    {:n 5, :i 5, :sum 10}
+;    {:n 5, :i 6, :sum 15}]
 ```
 
 ### Integration with transducers
