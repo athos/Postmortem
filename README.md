@@ -254,6 +254,18 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 
 ### Integration with transducers
 
+After reading this document so far, you may wonder what if the loop would be repeated millions of times?
+
+That's where Postmortem really shines. It achieves extremely flexible customization of logging strategies
+by integration with transducers. For details on transducers, see
+the [official reference](https://clojure.org/reference/transducers).
+
+Postmortem's logging operators (`spy>>`, `spy>` and `dump`) are optionally takes a transducer
+after the log entry key. When you call `(spy>> <key> <xform> <expr>)`, the transducer `<xform>`
+controls when the given data will be logged and/or what data will actually be stored.
+
+For example:
+
 ```clojure
 (defn sum1 [n]
   (loop [i 0 sum 0]
@@ -302,20 +314,6 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 ```clojure
 (defn sum [n]
   (loop [i 0 sum 0]
-    (pm/dump :sum (drop-while (fn [{:keys [sum]}] (< sum 5))))
-    (if (> i n)
-      sum
-      (recur (inc i) (+ i sum)))))
-
-(sum 5) ;=> 15
-
-(pm/log-for :Sum)
-;=> [{:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10} {:n 5, :i 6, :sum 15}]
-```
-
-```clojure
-(defn sum [n]
-  (loop [i 0 sum 0]
     (pm/dump :sum (take 3))
     (if (> i n)
       sum
@@ -325,6 +323,20 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 
 (pm/log-for :sum)
 ;=> [{:n 5, :i 0, :sum 0} {:n 5, :i 1, :sum 0} {:n 5, :i 2, :sum 1}]
+```
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (drop-while (fn [{:keys [sum]}] (< sum 5))))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 5) ;=> 15
+
+(pm/log-for :Sum)
+;=> [{:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10} {:n 5, :i 6, :sum 15}]
 ```
 
 ```clojure
