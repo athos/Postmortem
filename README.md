@@ -72,12 +72,12 @@ In Postmortem, `spy>>` and `log-for` are two of the most fundamental functions.
 ```
 
 `(spy>> <key> <expr>)` stores the value of the `<expr>` to a log entry for the key `<key>`
-every time the `spy>>` form is evaluated. In the above example, `(pm/spy>> :sum (+ i sum))`
+each time the `spy>>` form is evaluated. In the above example, `(pm/spy>> :sum (+ i sum))`
 will store intermediate results of summation for each iteration to the log entry for
 the key `:sum`.
 
 `(log-for <key>)`, on the other hand, retrieves all the logged data stored
-at the log entry for the key `<key>`. In the following example, `(log-for :sum)` results in
+in the log entry for the key `<key>`. In the following example, `(log-for :sum)` results in
 `[0 1 3 6 10 15]`, which is the intermediate summations from 0 to 5:
 
 ```clojure
@@ -88,7 +88,7 @@ at the log entry for the key `<key>`. In the following example, `(log-for :sum)`
 ;=> [0 1 3 6 10 15]
 ```
 
-Any Clojure data can be used as a log entry key, such as keywords (as in the example),
+Any Clojure data can be used as a log entry key, such as keywords (as in the above examples),
 symbols, integers, strings or whatever .
 In fact, you can even use a runtime value as a key, not only a literal value, and
 thus log entry keys can be used to collect and group the log data:
