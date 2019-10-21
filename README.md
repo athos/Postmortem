@@ -255,9 +255,10 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 ### Integration with transducers
 
 After reading this document so far, you may wonder what if the loop would be repeated millions of times?
+What if you only need the last few log items out of them?
 
-That's where Postmortem really shines. It achieves extremely flexible customization of logging strategies
-by integration with transducers. For details on transducers, see
+That's where Postmortem really shines. It enables extremely flexible customization of logging strategies
+by integration with transducers. For more details on transducers, see
 the [official reference](https://clojure.org/reference/transducers).
 
 Postmortem's logging operators (`spy>>`, `spy>` and `dump`) are optionally takes a transducer
@@ -291,6 +292,15 @@ For example:
 ;=> [1 3 15]
 ```
 
+You see two invocations to `spy>>` in the example code. The first one is an ordinary
+invocation without a transducer. The second one is called with a transducer `(filter odd?)`.
+With that transducer, the log entry for the key `:sum2` only stores odd numbers
+while the one for `:sum1` holds every intermediate sum result.
+
+Not only `filter`, you can use any transducer to customize how a log item will be stored.
+The following code uses a transducer `(map (fn [m] (select-keys m [:sum])))` to
+only stores the value of `sum` for each iteration:
+
 ```clojure
 (defn sum [n]
   (loop [i 0 sum 0]
@@ -311,6 +321,9 @@ For example:
 ;    {:sum 15}]
 ```
 
+Also, transducers can be used to restrict the maximum log size.
+For example, `(take <n>)` only alows the first up to `<n>` items to be logged:
+
 ```clojure
 (defn sum [n]
   (loop [i 0 sum 0]
@@ -324,6 +337,8 @@ For example:
 (pm/log-for :sum)
 ;=> [{:n 5, :i 0, :sum 0} {:n 5, :i 1, :sum 0} {:n 5, :i 2, :sum 1}]
 ```
+
+`(drop-while <pred>)` would drop log data until `<pred>` returns `true`:
 
 ```clojure
 (defn sum [n]
