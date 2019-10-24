@@ -258,8 +258,8 @@ After reading this document so far, you may wonder what if the loop would be rep
 What if you only need the last few log items out of them?
 
 That's where Postmortem really shines. It enables extremely flexible customization of logging strategies
-by integration with transducers. For more details on transducers, see
-the [official reference](https://clojure.org/reference/transducers).
+by integration with transducers (If you are not familiar with transducers, we recommend that you take
+a look at the [official reference](https://clojure.org/reference/transducers) first).
 
 Postmortem's logging operators (`spy>>`, `spy>` and `dump`) are optionally takes a transducer
 after the log entry key. When you call `(spy>> <key> <xform> <expr>)`, the transducer `<xform>`
@@ -354,6 +354,8 @@ For example, `(take <n>)` only alows the first up to `<n>` items to be logged:
 ;=> [{:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10} {:n 5, :i 6, :sum 15}]
 ```
 
+You can even pick up logs by random sampling using `(random-sample <prob>)`:
+
 ```clojure
 (defn sum [n]
   (loop [i 0 sum 0]
@@ -372,6 +374,36 @@ For example, `(take <n>)` only alows the first up to `<n>` items to be logged:
 
 (pm/log-for :sum)
 ;=> [{:n 5, :i 2, :sum 1} {:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10}]
+```
+
+Postmortem also has its own set of transducer utilities. The namespace
+`postmortem.xforms` provides several useful transducers to implement
+specific logging strategies.
+
+`take-last` is one of the most useful of those transducers.
+`(take-last <n>)` just logs the last `<n>` items, which only
+requires a fixed-size buffer (rather than one with indefinite size)
+to store the desired range of logs even when the logging operator is
+repeatedly called millions of times:
+
+```clojure
+(require '[postmortem.xforms :as xf])
+
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/dump :sum (xf/take-last 5))
+    (if (> i n)
+      sum
+      (recur (inc i) (+ i sum)))))
+
+(sum 1000000) ;=> 500000500000
+
+(pm/log-for :sum)
+;=> [{:n 1000000, :i 999997, :sum 499996500006}
+;    {:n 1000000, :i 999998, :sum 499997500003}
+;    {:n 1000000, :i 999999, :sum 499998500001}
+;    {:n 1000000, :i 1000000, :sum 499999500000}
+;    {:n 1000000, :i 1000001, :sum 500000500000}]
 ```
 
 ### Sessions
