@@ -8,6 +8,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
 ## Features
 
 - Postmortem encourages data-driven approaches in the debugging process
+  - Logs are just Clojure data, so you can use DataScript, REBL or whatever tools for more sophisticated log analysis
 - Integration with transducers enables various flexible logging strategies
 - Instrumentation on vars makes it easier to debug functions without touching their code
 - Supports Clojure/ClojureScript/self-hosted ClojureScript
@@ -89,9 +90,9 @@ in the log entry for the key `<key>`. In the following example, `(log-for :sum)`
 ```
 
 Any Clojure data can be used as a log entry key, such as keywords (as in the above examples),
-symbols, integers, strings or whatever .
+symbols, integers, strings or whatever.
 In fact, you can even use a runtime value as a key, not only a literal value, and
-thus log entry keys can be used to collect and group the log data:
+thus entry keys can also be used as an easy way to collect and group the log data:
 
 ```clojure
 (defn f [n]
