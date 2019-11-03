@@ -408,16 +408,16 @@ repeatedly called millions of times:
 
 A session is an abstraction responsible for what actually happens when
 storing and retrieving logs and where the actual log data will be stored.
-It can be used to completely isolate some logs from the other logs, or
-to enable/disable the entire logging mechanism, etc.
+It can be used to completely isolate some logs from the other, or to
+enable/disable the entire logging mechanism, etc.
 
 #### Handling sessions
 
 Postmortem's logging operators takes another optional argument for session.
 For example, `(spy>> <session> <key> <expr> <xforms>)` stores logs
-in the `<session>`.
+into the `<session>`.
 
-To make a new session, you can use `make-session`:
+To make a new session, use `make-session`:
 
 ```clojure
 (def sess (pm/make-session))
