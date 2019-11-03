@@ -27,10 +27,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
     - [`dump`](#dump)
   - [Integration with transducers](#integration-with-transducers)
   - [Sessions](#sessions)
-    - `current-session`
-    - `make-session`
-    - `set-current-session!`
-    - `with-session`
+    - [Handling sessions](#handling-sessions)
     - `void-session`
     - `make-unsafe-session`
   - [Instrumentation](#instrumentation)
@@ -408,6 +405,104 @@ repeatedly called millions of times:
 ```
 
 ### Sessions
+
+A session is an abstraction responsible for what actually happens when
+storing and retrieving logs and where the actual log data will be stored.
+It can be used to completely isolate some logs from the other logs, or
+to enable/disable the entire logging mechanism, etc.
+
+#### Handling sessions
+
+Postmortem's logging operators takes another optional argument for session.
+For example, `(spy>> <session> <key> <expr> <xforms>)` stores logs
+in the `<session>`.
+
+To make a new session, you can use `make-session`:
+
+```clojure
+(def sess (pm/make-session))
+
+(pm/spy>> sess :foo 1 identity)
+(pm/spy>> sess :bar 2 identity)
+(pm/spy>> sess :foo 3 identity)
+```
+
+Note that to specify your session explicitly, you'll need to specify a transducer
+even if you don't really want to change a logging strategy using it.
+Here, the `identity` transducer is specified as a placeholder.
+
+To retrieve log data from the session `sess`, you'll call `log-for` or `logs`
+with it:
+
+```clojure
+(pm/log-for sess :foo)
+;=> [1 3]
+(pm/logs sess)
+;=> {:foo [1 3) :bar [2]]}
+```
+
+When you omit a session, things behave as if the current session were specified.
+The *current session* is the default session that can be used globally.
+
+To get the current session, use `current-session`:
+
+```clojure
+(pm/current-session)
+;; Returns the current session object
+```
+
+And the following pairs of expressions are semantically identical, respectively:
+
+```clojure
+(pm/spy>> :foo identity {:foo 42})
+(pm/spy>> (pm/current-session) :foo identity {:foo 42})
+
+(pm/dump :foo identity)
+(pm/dump (pm/current-session) :foo identity)
+
+(pm/log-for :foo)
+(pm/log-for (pm/current-session) :foo)
+
+(pm/logs)
+(pm/logs (pm/current-session))
+```
+
+To set the current session to your own session, you can use `set-current-session!`:
+
+```clojure
+(def sess (pm/make-session))
+(pm/set-current-session! sess)
+
+(pm/spy>> :foo 1)
+(pm/spy>> :foo 2)
+(pm/spy>> :foo 3)
+
+(pm/log-for :foo)
+;=> [1 2 3]
+(pm/log-for sess :foo)
+;=> [1 2 3]
+```
+
+Or you can change the current session temporarily with `with-session`:
+
+```clojure
+(def sess (pm/make-session))
+
+(pm/spy>> :foo 1)
+(pm/with-session sess
+  (pm/spy>> :foo 2)
+  (pm/spy>> :foo 3))
+(pm/spy>> :foo 4)
+
+(pm/log-for :foo)
+;=> [1 4]
+(pm/log-for sess :foo)
+;=> [2 3]
+```
+
+#### `void-session`
+
+#### `make-unsafe-session`
 
 ### Instrumentation
 
