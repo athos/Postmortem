@@ -28,6 +28,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
   - [Integration with transducers](#integration-with-transducers)
   - [Sessions](#sessions)
     - [Handling sessions](#handling-sessions)
+    - [Attaching a transducer](#attaching-a-transducer)
     - `void-session`
     - `make-unsafe-session`
   - [Instrumentation](#instrumentation)
@@ -499,6 +500,50 @@ Or you can change the current session temporarily with `with-session`:
 (pm/log-for sess :foo)
 ;=> [2 3]
 ```
+
+#### Attaching a transducer
+
+Transducers can also be attached to sessions. Those transducers are called a *base transducer*
+of a session. To make a session with a base transducer attached, call `(make-session <xform>)`.
+If a session has a base transducer, logging operators operating on the session will behave
+as if they were called 1) with the base transducer, or 2) with a transducer produced
+by prepending (a la `comp`) the base transducer to the transducer they are originally
+called with, if any.
+
+For example for case 1, this code
+
+```clojure
+(pm/set-current-session! (pm/make-session (take 5)))
+
+(pm/dump :key)
+```
+
+is equivalent to the following:
+
+```clojure
+(pm/set-current-session! (pm/make-session))
+
+(pm/dump :key (take 5))
+```
+
+And for case 2, this
+
+```clojure
+(pm/set-current-session! (pm/make-session (take 5)))
+
+(pm/dump :key (drop 5))
+```
+
+is equavalent to:
+
+```clojure
+(pm/set-current-sesion! (pm/make-session))
+
+(pm/dump :key (comp (take 5) (drop 5)))
+```
+
+This feature is useful to apply a common transducer to all the logging operators
+operating on a session.
 
 #### `void-session`
 
