@@ -503,8 +503,9 @@ Or you can change the current session temporarily with `with-session`:
 
 #### Attaching a transducer
 
-Transducers can also be attached to sessions. Those transducers are called a *base transducer*
-of a session. To make a session with a base transducer attached, call `(make-session <xform>)`.
+Transducers can be attached to sessions as well. Those transducers attached to a session
+are called a *base transducer* of the session. To make a session with a base transducer
+attached, call `(make-session <xform>)`.
 If a session has a base transducer, logging operators operating on the session will behave
 as if they were called 1) with the base transducer, or 2) with a transducer produced
 by prepending (a la `comp`) the base transducer to the transducer they are originally
@@ -529,9 +530,9 @@ is equivalent to the following:
 And for case 2, this
 
 ```clojure
-(pm/set-current-session! (pm/make-session (take 5)))
+(pm/set-current-session! (pm/make-session (drop 5)))
 
-(pm/dump :key (drop 5))
+(pm/dump :key (take 5))
 ```
 
 is equavalent to:
@@ -539,7 +540,7 @@ is equavalent to:
 ```clojure
 (pm/set-current-sesion! (pm/make-session))
 
-(pm/dump :key (comp (take 5) (drop 5)))
+(pm/dump :key (comp (drop 5) (take 5)))
 ```
 
 This feature is useful to apply a common transducer to all the logging operators
