@@ -29,7 +29,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
   - [Sessions](#sessions)
     - [Handling sessions](#handling-sessions)
     - [Attaching a transducer](#attaching-a-transducer)
-    - `void-session`
+    - [`void-session`](#void-session)
     - `make-unsafe-session`
   - [Instrumentation](#instrumentation)
     - `instrument` & `unstrument`
@@ -547,6 +547,37 @@ This feature is useful to apply a common transducer to all the logging operators
 operating on a session.
 
 #### `void-session`
+
+A void session is another implementation of Postmortem's session. It does nothing
+at all. It's useful to disable the logging operators operating on the current session.
+
+To get the void session, call `void-session`:
+
+```clojure
+(pm/set-current-session! (pm/void-session))
+
+(pm/spy>> :foo 1)
+(pm/spy>> :foo 2)
+(pm/spy>> :foo 3)
+
+(pm/log-for :foo)
+;=> []
+```
+
+Using it together with `with-session`, you can disable logging temporarily:
+
+```clojure
+(pm/set-current-session! (pm/make-session))
+
+(pm/spy>> :foo 1)
+(pm/with-sesion (pm/void-session)
+  (pm/spy>> :foo 2)
+  (pm/spy>> :foo 3))
+(pm/spy>> :foo 4)
+
+(pm/log-for :foo)
+;=> [1 4]
+```
 
 #### `make-unsafe-session`
 
