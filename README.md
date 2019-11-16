@@ -77,7 +77,7 @@ the key `:sum`.
 
 `(log-for <key>)`, on the other hand, retrieves all the logged data stored
 in the log entry for the key `<key>`. In the following example, `(log-for :sum)` results in
-`[0 1 3 6 10 15]`, which is the intermediate summations from 0 to 5:
+`[0 1 3 6 10 15]`, which corresponds to the intermediate summations from 0 to 5:
 
 ```clojure
 (sum 5)
@@ -90,7 +90,7 @@ in the log entry for the key `<key>`. In the following example, `(log-for :sum)`
 Any Clojure data can be used as a log entry key, such as keywords (as in the above examples),
 symbols, integers, strings or whatever.
 In fact, you can even use a runtime value as a key, not only a literal value, and
-thus entry keys can also be used as an easy way to collect and group the log data:
+thus entry keys can also be used as a handy way to collect and group the log data:
 
 ```clojure
 (defn f [n]
@@ -262,7 +262,7 @@ a look at the [official reference](https://clojure.org/reference/transducers) fi
 
 Postmortem's logging operators (`spy>>`, `spy>` and `dump`) are optionally takes a transducer
 after the log entry key. When you call `(spy>> <key> <xform> <expr>)`, the transducer `<xform>`
-controls when the given data will be logged and/or what data will actually be stored.
+controls whether or not the given data will be logged and/or what data will actually be stored.
 
 For example:
 
