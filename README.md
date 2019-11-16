@@ -623,7 +623,7 @@ thread safety and performance.
 (run! deref [(future (dotimes [i 10000] (f i)))
              (future (dotimes [i 10000] (f i)))])
 
-(pm/log-for sess :f) ;=> 11055
+(count (pm/log-for sess :f)) ;=> 11055
 ```
 
 In ClojureScript, `make-session` is identical to `make-unsafe-session`.
