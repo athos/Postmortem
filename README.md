@@ -30,7 +30,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
     - [Handling sessions](#handling-sessions)
     - [Attaching a transducer](#attaching-a-transducer)
     - [`void-session`](#void-session)
-    - `make-unsafe-session`
+    - [`make-unsafe-session`](#make-unsafe-session)
   - [Instrumentation](#instrumentation)
     - `instrument` & `unstrument`
 - [Related works](#related-works)
@@ -580,6 +580,53 @@ Using it together with `with-session`, you can disable logging temporarily:
 ```
 
 #### `make-unsafe-session`
+
+In Clojure, an ordinary session, created by `make-session`, is inherently
+thread safe, so you can safely share and update it across more than
+one threads:
+
+```clojure
+(def sess (pm/make-session))
+(pm/set-current-session! sess)
+
+(defn f [n]
+  (pm/dump :f))
+
+(run! deref [(future (dotimes [i 10000] (f i)))
+             (future (dotimes [i 10000] (f i)))])
+
+(count (pm/log-for sess :f)) ;=> 20000
+```
+
+This thread safety is achieved by means of pessimistic locking during
+the session update. If it is guaranteed that no more than one updates
+never happen simultaneously on a single session, you can use
+`make-unsafe-session` instead to avoid the overhead of the mutual exclusion.
+`make-unsafe-session` behaves almost same as `make-session` except for
+thread safety and performance.
+
+```clojure
+;; you can use `make-unsafe-session` in the same way as `make-session`
+(def sess (pm/make-unsafe-session))
+(pm/set-current-session! sess)
+
+(pm/spy>> :foo 1)
+(pm/spy>> :foo 2)
+(pm/spy>> :foo 3)
+
+(pm/log-for sess :foo) ;=> [1 2 3]
+
+;; but `make-unsafe-session` is not thread safe
+(defn f [n]
+  (pm/dump :f))
+
+(run! deref [(future (dotimes [i 10000] (f i)))
+             (future (dotimes [i 10000] (f i)))])
+
+(pm/log-for sess :f) ;=> 11055
+```
+
+In ClojureScript, `make-session` is identical to `make-unsafe-session`.
 
 ### Instrumentation
 
