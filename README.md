@@ -626,7 +626,7 @@ thread safety and performance.
 (count (pm/log-for sess :f)) ;=> 11055
 ```
 
-In ClojureScript, `make-session` is identical to `make-unsafe-session`.
+In ClojureScript, `make-session` is completely identical to `make-unsafe-session`.
 
 ### Instrumentation
 
