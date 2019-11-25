@@ -630,6 +630,123 @@ In ClojureScript, `make-session` is identical to `make-unsafe-session`.
 
 ### Instrumentation
 
+```clojure
+(require '[postmortem.core :as pm]
+         '[postmortem.instrument :as pi])
+
+(defn f [x] (inc x))
+
+;; Instruments `f` to enable logging
+(pi/instrument `f)
+;=> [user/f]
+
+(dotimes [i 5] (prn (f i)))
+
+(pm/log-for `f)
+;=> [{:args (0)}
+;    {:args (0), :ret 1}
+;    {:args (1)}
+;    {:args (1), :ret 2}
+;    {:args (2)}
+;    {:args (2), :ret 3}
+;    {:args (3)}
+;    {:args (3), :ret 4}
+;    {:args (4)}
+;    {:args (4), :ret 5}]
+
+;; Unstruments `f` to disable logging
+(pi/unstrument `f)
+;=> [user/f]
+
+(pm/reset!)
+
+(dotimes [i 5] (prn (f i)))
+(pm/log-for `f) ;=> nil
+```
+
+```clojure
+(defn broken-factorial [n]
+  (cond (= n 0) 1
+        (= n 5) (* (broken-factorial (dec n))
+                   (throw (ex-info "Something bad has happened!!" {})))
+        :else (* n (broken-factorial (dec n)))))
+
+;; So far so good
+(map broken-factorial (range 5))
+;=> (1 1 2 6 24)
+
+;; Boom!!
+(broken-factorial 7)
+;; Execution error (ExceptionInfo) at user/broken-factorial
+;; Something bad has happened!!
+
+;; Now let's look into it further!
+(pi/instrument `broken-factorial)
+;=> [user/broken-factorial]
+
+(broken-factorial 7) ;; throws error
+(pm/log-for `broken-factorial)
+;=> [{:args (7)}
+;    {:args (6)}
+;    {:args (5)}
+;    {:args (4)}
+;    {:args (3)}
+;    {:args (2)}
+;    {:args (1)}
+;    {:args (0)}
+;    {:args (0), :ret 1}
+;    {:args (1), :ret 1}
+;    {:args (2), :ret 2}
+;    {:args (3), :ret 6}
+;    {:args (4), :ret 24}
+;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}
+;    {:args (6), :err #error {:cause "Something bad has happened!!" ...}}
+;    {:args (7), :err #error {:cause "Something bad has happened!!" ...}}]"
+```
+
+```clojure
+(require '[postmortem.core :as pm]
+         '[postmortem.instrument :as pi]
+         '[postmortem.xforms :as xf])
+
+(pm/reset!)
+
+(pi/instrument `broken-factorial
+               {:xform (comp (xf/take-until :err) (xf/take-last 5))})
+;=> [user/broken-factorial]
+
+(broken-factorial 7) ;; throws error
+(pm/log-for `broken-factorial)
+;=> [{:args (1), :ret 1}
+;    {:args (2), :ret 2}
+;    {:args (3), :ret 6}
+;    {:args (4), :ret 24}
+;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}]
+```
+
+```clojure
+(def sess (pm/make-session))
+
+(defn f [x] (inc x))
+
+(pi/instrument `f {:session sess})
+
+(dotimes [i 5] (prn (f i)))
+
+(pm/log-for `f) ;=> nil
+(pm/log-for sess `f)
+;=> [{:args (0)}
+;    {:args (0), :ret 1}
+;    {:args (1)}
+;    {:args (1), :ret 2}
+;    {:args (2)}
+;    {:args (2), :ret 3}
+;    {:args (3)}
+;    {:args (3), :ret 4}
+;    {:args (4)}
+;    {:args (4), :ret 5}]
+```
+
 ## Related works
 
 - [scope-capture](https://github.com/vvvvalvalval/scope-capture)
