@@ -82,6 +82,11 @@
   (pm/reset!)
   (is (= {} (pm/logs))))
 
+;; Assert this function definition compiles
+;; cf. https://github.com/athos/postmortem/issues/2
+(defn regression-2 [^long x]
+  (pm/dump :regression-2))
+
 (deftest ^:eftest/synchronized transducers-test
   (are [key xform expected]
       (let [f (fn [n]
