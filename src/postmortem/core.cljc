@@ -174,7 +174,7 @@
     (->> (cond-> (macros/case :clj &env :cljs (:locals &env))
            (seq names)
            (select-keys (map (comp symbol name) names)))
-         (into {} (map (fn [[k _]] `[~(keyword k) ~k])))))
+         (into {} (map (fn [[k _]] `[~(keyword k) ~(with-meta k nil)])))))
 
   (defmacro dump
     "Saves a local environment map to the log entry corresponding to the specified
