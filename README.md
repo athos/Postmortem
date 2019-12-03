@@ -9,8 +9,8 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
 
 - Postmortem encourages data-driven approaches in the debugging process
   - Logs are just Clojure data, so you can use DataScript, REBL or whatever tools for more sophisticated log analysis
-- Integration with transducers enables various flexible logging strategies
-- Instrumentation on vars makes it easier to debug functions without touching their code
+- [Integration with transducers](#integration-with-transducers) enables various flexible logging strategies
+- [Instrumentation](#instrumentation) on vars makes it easier to debug functions without touching their code
 - Supports Clojure/ClojureScript/self-hosted ClojureScript
 - Possible to use for debugging multi-threaded programs
 
@@ -32,7 +32,6 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
     - [`void-session`](#void-session)
     - [`make-unsafe-session`](#make-unsafe-session)
   - [Instrumentation](#instrumentation)
-    - `instrument` & `unstrument`
 - [Related works](#related-works)
 
 ## Requirements
