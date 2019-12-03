@@ -123,14 +123,13 @@
    (logs* session)))
 
 (defn reset-for!
-  "Resets log entries for the specified key(s).
+  "Resets log entries for the specified key.
   If session is omitted, the entries in the current session will be reset."
-  ([key-or-keys] (reset-for! (current-session) key-or-keys))
-  ([session key-or-keys]
+  ([key] (reset-for! (current-session) key))
+  ([session key]
    (assert (session? session) "Invalid session specified")
-   (let [keys (if (coll? key-or-keys) key-or-keys #{key-or-keys})]
-     (proto/-reset! session (set keys))
-     nil)))
+   (proto/-reset! session #{key})
+   nil))
 
 (defn reset!
   "Resets all the log entries.
