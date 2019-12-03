@@ -79,7 +79,7 @@
                 {:n 0 :a 5 :b 8}]}
          (pm/logs)))
 
-  (pm/reset!)
+  (pm/reset-keys! #{:add `fib})
   (is (= {} (pm/logs))))
 
 ;; Assert this function definition compiles

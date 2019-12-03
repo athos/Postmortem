@@ -131,6 +131,16 @@
    (proto/-reset! session #{key})
    nil))
 
+(defn reset-keys!
+  "Resets log entries for the specified keys.
+  If session is omitted, the entries in the current session will be reset."
+  ([keys] (reset-keys! (current-session) keys))
+  ([session keys]
+   (assert (session? session) "Invalid session specified")
+   (assert (coll? keys) "keys must be a collection")
+   (proto/-reset! session (set keys))
+   nil))
+
 (defn reset!
   "Resets all the log entries.
   If session is omitted, the entries in the current session will be reset."
