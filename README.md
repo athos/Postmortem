@@ -21,7 +21,7 @@ A tiny value-oriented debugging logger for Clojure(Script), powered by transduce
 - [Usage](#usage)
   - [Basic usage](#basic-usage)
     - [`spy>>` / `log-for`](#spy--log-for)
-    - [`reset-for!` / `completed?`](#reset-for--completed)
+    - [`reset-key!` / `completed?`](#reset-key--completed)
     - [`logs` / `reset!`](#logs--reset)
     - [`spy>`](#spy)
     - [`dump`](#dump)
@@ -103,22 +103,22 @@ thus entry keys can also be used as a handy way to collect and group the log dat
 ;=> [2 4 6]
 ```
 
-#### `reset-for!` / `completed?`
+#### `reset-key!` / `completed?`
 
-To clear the logged data at the log entry `<key>`, call `(reset-for! <key>)`:
+To clear the logged data at the log entry `<key>`, call `(reset-key! <key>)`:
 
 ```clojure
 (pm/log-for :sum)
 ;=> [0 1 3 6 10 15]
 
-(pm/reset-for! :sum)
+(pm/reset-key! :sum)
 
 (pm/log-for :sum)
 ;=> nil
 ```
 
 Note that once you call `log-for` for a key `k`, the log entry for `k` will be *completed*.
-A completed log entry will not be changed anymore until you call `reset-for!` for the log entry `k`:
+A completed log entry will not be changed anymore until you call `reset-key!` for the log entry `k`:
 
 ```clojure
 (pm/spy>> :foobar 1)
@@ -131,7 +131,7 @@ A completed log entry will not be changed anymore until you call `reset-for!` fo
 (pm/log-for :foobar)
 ;=> [1 2]
 
-(pm/reset-for! :foobar)
+(pm/reset-key! :foobar)
 
 (pm/spy>> :foobar 3)
 (pm/spy>> :foobar 4)
@@ -152,7 +152,7 @@ You can check if a log entry has been completed using `(completed? <key>)`:
 (pm/completed? :barbaz)
 ;=> true
 
-(pm/reset-for! :barbaz)
+(pm/reset-key! :barbaz)
 (pm/completed? :barbaz)
 ;=> false
 ```
@@ -181,7 +181,7 @@ than just calling `log-for` for each log entry:
 ```
 
 Similarly, `reset!` is useful to clear the whole log data at a time, rathar than
-clearing each individual log entry one by one calling `reset-for!`:
+clearing each individual log entry one by one calling `reset-key!`:
 
 ```clojure
 (pm/logs)

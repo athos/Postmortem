@@ -65,7 +65,7 @@
          (pm/logs)))
   (is (every? pm/completed? [:add :add-result `fib]))
 
-  (pm/reset-for! :add-result)
+  (pm/reset-key! :add-result)
   (is (= {:add [{:a 0 :b 1}
                 {:a 1 :b 1}
                 {:a 1 :b 2}

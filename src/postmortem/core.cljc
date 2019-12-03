@@ -122,10 +122,10 @@
    (assert (session? session) "Invalid session specified")
    (logs* session)))
 
-(defn reset-for!
-  "Resets log entries for the specified key.
+(defn reset-key!
+  "Resets log entry for the specified key.
   If session is omitted, the entries in the current session will be reset."
-  ([key] (reset-for! (current-session) key))
+  ([key] (reset-key! (current-session) key))
   ([session key]
    (assert (session? session) "Invalid session specified")
    (proto/-reset! session #{key})
