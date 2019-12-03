@@ -630,6 +630,14 @@ In ClojureScript, `make-session` is completely identical to `make-unsafe-session
 
 ### Instrumentation
 
+Postmortem has one more powerful feature: instrumentation. It looks like clojure.spec's
+feature with the same name. Once you instrument a function, you can collect execution log
+for it without touching its code.
+
+To use the instrumentation feature, you'll need to require the `postmortem.instrument`
+namespace. The namespace provides two macros, `instrument` and `unstrument`, which
+enables/disables logging for the instrumented function, respectively.
+
 ```clojure
 (require '[postmortem.core :as pm]
          '[postmortem.instrument :as pi])
@@ -663,6 +671,21 @@ In ClojureScript, `make-session` is completely identical to `make-unsafe-session
 (dotimes [i 5] (prn (f i)))
 (pm/log-for `f) ;=> nil
 ```
+
+Under the hood, instrumenting a function `f` replaces `f` with something like this:
+
+```clojure
+(fn [& args]
+  (pm/spy>> `f {:args args})
+  (try
+    (let [ret (apply f args)]
+      (pm/spy>> `f {:args args :ret ret}))
+    (catch Throwable t
+      (pm/spy>> `f {:args args :err t}))))
+```
+
+This error handling behavior may be useful to identify which function call
+actually caused an error especially when you are debugging a recursive function.
 
 ```clojure
 (defn broken-factorial [n]
@@ -704,6 +727,11 @@ In ClojureScript, `make-session` is completely identical to `make-unsafe-session
 ;    {:args (7), :err #error {:cause "Something bad has happened!!" ...}}]"
 ```
 
+Moreover, transducer integration makes instrumentation way more powerful.
+Specify the `{:xform <xform>}` option to attach a transducer `<xform>` when
+instrumenting a fuction. The example below shows how you can utilize a transducer
+to narrow down the execution log to the last few items until an error occurs:
+
 ```clojure
 (require '[postmortem.core :as pm]
          '[postmortem.instrument :as pi]
@@ -723,6 +751,9 @@ In ClojureScript, `make-session` is completely identical to `make-unsafe-session
 ;    {:args (4), :ret 24}
 ;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}]
 ```
+
+Also, you can even isolate the session for some function instrumentation
+by specifying `{:session <session>}` option:
 
 ```clojure
 (def sess (pm/make-session))
