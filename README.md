@@ -88,8 +88,8 @@ in the log entry for the key `<key>`. In the following example, `(log-for :sum)`
 
 Any Clojure data can be used as a log entry key, such as keywords (as in the above examples),
 symbols, integers, strings or whatever.
-In fact, you can even use a runtime value as a key, not only a literal value, and
-thus entry keys can also be used as a handy way to collect and group the log data:
+In fact, you can even use a runtime value as a key, as well as literal values, and
+thus entry keys can also be used as a handy way to collect and group log data:
 
 ```clojure
 (defn f [n]
@@ -196,7 +196,7 @@ clearing each individual log entry one by one calling `reset-key!`:
 
 #### `spy>`
 
-`spy>>` has a look-alike cousin called `spy>`. They have no semantic difference,
+`spy>>` has a look-alike cousin named `spy>`. They have no semantic difference,
 except that `spy>` is primarily intended to be used in *thread-first* contexts
 and therefore takes the log data as its *first* argument while `spy>>` is mainly
 intended to be used in *thread-last* contexts and therefore takes the log data
@@ -222,9 +222,9 @@ For example, the following two expressions behave in exactly the same way:
 
 `dump` is another convenient tool to take snapshots of the values of local bindings.
 
-`(dump <key>)` stores local environment maps to the log entry `<key>`.
+`(dump <key>)` stores a local environment map to the log entry `<key>`.
 A *local environment map* is a map of keywords representing local names in the scope
-at the callsite, to the value that the corresponding local name is bound to.
+at the callsite, to the values that the corresponding local names are bound to.
 
 The example code below shows how `dump` logs the values of the local bindings
 at the callsite (namely, `n`, `i` and `sum`) for each iteration:
@@ -255,7 +255,7 @@ at the callsite (namely, `n`, `i` and `sum`) for each iteration:
 After reading this document so far, you may wonder what if the loop would be repeated millions of times?
 What if you only need the last few log items out of them?
 
-That's where Postmortem really shines. It enables extremely flexible customization of logging strategies
+That's where Postmortem really shines. It achieves extremely flexible customizability of logging strategies
 by integration with transducers (If you are not familiar with transducers, we recommend that you take
 a look at the [official reference](https://clojure.org/reference/transducers) first).
 
@@ -293,11 +293,11 @@ For example:
 You see two invocations to `spy>>` in the example code. The first one is an ordinary
 invocation without a transducer. The second one is called with a transducer `(filter odd?)`.
 With that transducer, the log entry for the key `:sum2` only stores odd numbers
-while the one for `:sum1` holds every intermediate sum result.
+while the entry for `:sum1` holds every intermediate sum result.
 
 Not only `filter`, you can use any transducer to customize how a log item will be stored.
-The following code uses a transducer `(map (fn [m] (select-keys m [:sum])))` to
-only stores the value of `sum` for each iteration:
+The following code uses a transducer `(map (fn [m] (select-keys m [:sum])))`, which
+only stores the value of the local binding `sum` for each iteration:
 
 ```clojure
 (defn sum [n]
@@ -320,7 +320,7 @@ only stores the value of `sum` for each iteration:
 ```
 
 Also, transducers can be used to restrict the maximum log size.
-For example, `(take <n>)` only alows the first up to `<n>` items to be logged:
+For example, `(take <n>)` only allows the first up to `<n>` items to be logged:
 
 ```clojure
 (defn sum [n]
@@ -336,7 +336,7 @@ For example, `(take <n>)` only alows the first up to `<n>` items to be logged:
 ;=> [{:n 5, :i 0, :sum 0} {:n 5, :i 1, :sum 0} {:n 5, :i 2, :sum 1}]
 ```
 
-`(drop-while <pred>)` would drop log data until `<pred>` returns `true`:
+`(drop-while <pred>)` would drop log data until `<pred>` returns `false`:
 
 ```clojure
 (defn sum [n]
@@ -374,15 +374,15 @@ You can even pick up logs by random sampling using `(random-sample <prob>)`:
 ;=> [{:n 5, :i 2, :sum 1} {:n 5, :i 4, :sum 6} {:n 5, :i 5, :sum 10}]
 ```
 
-Postmortem also has its own set of transducer utilities. The namespace
+Postmortem also has its own set of utility transducers. The namespace
 `postmortem.xforms` provides several useful transducers to implement
 specific logging strategies.
 
-`take-last` is one of the most useful of those transducers.
+`take-last` is one of the most useful transducer of those.
 `(take-last <n>)` just logs the last `<n>` items, which only
-requires a fixed-size buffer (rather than one with indefinite size)
+requires a fixed-size buffer (rather than an indefinite-size one)
 to store the desired range of logs even when the logging operator is
-repeatedly called millions of times:
+repeatedly invoked millions of times:
 
 ```clojure
 (require '[postmortem.xforms :as xf])
@@ -431,8 +431,7 @@ Note that to specify your session explicitly, you'll need to specify a transduce
 even if you don't really want to change a logging strategy using it.
 Here, the `identity` transducer is specified as a placeholder.
 
-To retrieve log data from the session `sess`, you'll call `log-for` or `logs`
-with it:
+To retrieve log data from the session `sess`, call `log-for` / `logs` with it:
 
 ```clojure
 (pm/log-for sess :foo)
@@ -442,7 +441,7 @@ with it:
 ```
 
 When you omit a session, things behave as if the current session were specified.
-The *current session* is the default session that can be used globally.
+The *current session* is the default session that can be accessed globally.
 
 To get the current session, use `current-session`:
 
@@ -483,7 +482,7 @@ To set the current session to your own session, you can use `set-current-session
 ;=> [1 2 3]
 ```
 
-Or you can change the current session temporarily with `with-session`:
+Or you can temporarily change the current session with `with-session`:
 
 ```clojure
 (def sess (pm/make-session))
@@ -505,10 +504,10 @@ Or you can change the current session temporarily with `with-session`:
 Transducers can be attached to sessions as well. Those transducers attached to a session
 are called a *base transducer* of the session. To make a session with a base transducer
 attached, call `(make-session <xform>)`.
-If a session has a base transducer, logging operators operating on the session will behave
-as if they were called 1) with the base transducer, or 2) with a transducer produced
-by prepending (a la `comp`) the base transducer to the transducer they are originally
-called with, if any.
+If a session has a base transducer, a logging operator operating on the session will behave
+as if it were called (1) with that base transducer, or (2) with a transducer produced
+by prepending (a la `comp`) the base transducer to the transducer that is originally 
+passed to the logging operator, if any.
 
 For example for case 1, this code
 
@@ -543,11 +542,11 @@ is equavalent to:
 ```
 
 This feature is useful to apply a common transducer to all the logging operators
-operating on a session.
+operating on the same session.
 
 #### `void-session`
 
-A void session is another implementation of Postmortem's session. It does nothing
+A void session is another implementation of Postmortem session which does nothing
 at all. It's useful to disable the logging operators operating on the current session.
 
 To get the void session, call `void-session`:
@@ -563,7 +562,7 @@ To get the void session, call `void-session`:
 ;=> []
 ```
 
-Using it together with `with-session`, you can disable logging temporarily:
+Using it together with `with-session` disables logging temporarily:
 
 ```clojure
 (pm/set-current-session! (pm/make-session))
@@ -580,7 +579,7 @@ Using it together with `with-session`, you can disable logging temporarily:
 
 #### `make-unsafe-session`
 
-In Clojure, an ordinary session, created by `make-session`, is inherently
+In Clojure, an ordinary session (created by `make-session`) is inherently
 thread safe, so you can safely share and update it across more than
 one threads:
 
@@ -600,7 +599,7 @@ one threads:
 This thread safety is achieved by means of pessimistic locking during
 the session update. If it is guaranteed that no more than one updates
 never happen simultaneously on a single session, you can use
-`make-unsafe-session` instead to avoid the overhead of the mutual exclusion.
+`make-unsafe-session` instead to avoid the overhead of mutual exclusion.
 `make-unsafe-session` behaves almost same as `make-session` except for
 thread safety and performance.
 
@@ -635,7 +634,7 @@ for it without touching its code.
 
 To use the instrumentation feature, you'll need to require the `postmortem.instrument`
 namespace. The namespace provides two macros, `instrument` and `unstrument`, which
-enables/disables logging for the instrumented function, respectively.
+enables/disables logging for a specified var, respectively.
 
 ```clojure
 (require '[postmortem.core :as pm]
@@ -684,7 +683,7 @@ Under the hood, instrumenting a function `f` replaces `f` with something like th
 ```
 
 This error handling behavior may be useful to identify which function call
-actually caused an error especially when you are debugging a recursive function.
+actually caused an error especially when you are debugging a recursive function:
 
 ```clojure
 (defn broken-factorial [n]
@@ -729,7 +728,8 @@ actually caused an error especially when you are debugging a recursive function.
 Moreover, transducer integration makes instrumentation way more powerful.
 Specify the `{:xform <xform>}` option to attach a transducer `<xform>` when
 instrumenting a fuction. The example below shows how you can utilize a transducer
-to narrow down the execution log to the last few items until an error occurs:
+to narrow down the execution log to the last few items until immediately before 
+an error occurs:
 
 ```clojure
 (require '[postmortem.core :as pm]
@@ -751,8 +751,8 @@ to narrow down the execution log to the last few items until an error occurs:
 ;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}]
 ```
 
-Also, you can even isolate the session for some function instrumentation
-by specifying `{:session <session>}` option:
+Also, you can even isolate the session for a function instrumentation
+by specifying the `{:session <session>}` option:
 
 ```clojure
 (def sess (pm/make-session))
