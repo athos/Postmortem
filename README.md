@@ -779,8 +779,8 @@ by specifying the `{:session <session>}` option:
 
 ## Related works
 
-- [scope-capture](https://github.com/vvvvalvalval/scope-capture)
-- [miracle.save](https://github.com/Saikyun/miracle.save)
+- [scope-capture](https://github.com/vvvvalvalval/scope-capture): Focuses on recreating a local environment at some point and seems rather intended to be a simple alternative for rich debuggers while Postmortem aims to compensate for some weakness in existing debuggers
+- [miracle.save](https://github.com/Saikyun/miracle.save): Closely resembles Postmortem's basics, but Postmortem has more fancy features such as transducer integration and instrumentation
 
 ## License
 
