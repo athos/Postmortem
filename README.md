@@ -14,6 +14,52 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
 - Supports Clojure/ClojureScript/self-hosted ClojureScript
 - Possible to use for debugging multi-threaded programs
 
+## Synopsis
+
+```clojure
+(require '[postmortem.core :as pm]
+         '[postmortem.xforms :as xf])
+
+(defn sum [n]
+  (loop [i n sum 0]
+    (pm/dump :sum (comp (filter (fn [{:keys [i]}] (even? i)))
+                        (xf/take-last 5)))
+    (if (= i 0)
+      sum
+      (recur (dec i) (+ i sum)))))
+
+(sum 100) ;=> 5050
+(pm/log-for :sum)
+;=> [{:n 100, :i 8, :sum 5014}
+;    {:n 100, :i 6, :sum 5029}
+;    {:n 100, :i 4, :sum 5040}
+;    {:n 100, :i 2, :sum 5047}
+;    {:n 100, :i 0, :sum 5050}]
+
+
+(require '[postmortem.instrument :as pi])
+
+(defn broken-factorial [n]
+  (cond (= n 0) 1
+        (= n 7) (* (broken-factorial (dec n))
+                   (throw (ex-info "Something bad has happened!!" {}))) ;; <- bug here
+        :else (* n (broken-factorial (dec n)))))
+
+(pi/instrument `broken-factorial
+               {:xform (comp (xf/take-until :err) (xf/take-last 5))})
+
+(broken-factorial 10)
+;; Execution error (ExceptionInfo) at user/broken-factorial.
+;; Something bad has happened!!
+
+(pm/log-for `broken-factorial)
+;=> [{:args (3), :ret 6}
+;    {:args (4), :ret 24}
+;    {:args (5), :ret 120}
+;    {:args (6), :ret 720}
+;    {:args (7), :err #error {:cause "Something bad has happened!!" ...}}]
+```
+
 ## Table of Contents
 
 - [Requirements](#requirements)
