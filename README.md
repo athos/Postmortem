@@ -87,9 +87,12 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
 - Planck 2.24.0+, or
 - Lumo 1.10.1+
 
+We have only tested on the above environments, but you could possibly use
+the library on some older versions of the ClojureScript runtimes as well.
+
 ## Installation
 
-Add the following to your project `:dependencies`:
+Add the following to your project dev dependencies or the `:user` profile in `~/.lein/profiles.clj`:
 
 [![Clojars Project](https://clojars.org/postmortem/latest-version.svg)](https://clojars.org/postmortem)
 
