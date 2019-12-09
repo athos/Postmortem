@@ -22,18 +22,18 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
 
 (defn sum [n]
   (loop [i n sum 0]
-    (pm/dump :sum (comp (filter (fn [{:keys [i]}] (even? i)))
-                        (xf/take-last 5)))
+    (pm/dump :sum (xf/take-last 5))
     (if (= i 0)
       sum
       (recur (dec i) (+ i sum)))))
 
 (sum 100) ;=> 5050
+
 (pm/log-for :sum)
-;=> [{:n 100, :i 8, :sum 5014}
-;    {:n 100, :i 6, :sum 5029}
-;    {:n 100, :i 4, :sum 5040}
+;=> [{:n 100, :i 4, :sum 5040}
+;    {:n 100, :i 3, :sum 5044}
 ;    {:n 100, :i 2, :sum 5047}
+;    {:n 100, :i 1, :sum 5049}
 ;    {:n 100, :i 0, :sum 5050}]
 
 
@@ -41,23 +41,22 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
 
 (defn broken-factorial [n]
   (cond (= n 0) 1
-        (= n 7) (* (broken-factorial (dec n))
-                   (throw (ex-info "Something bad has happened!!" {}))) ;; <- bug here
+        (= n 7) (/ (broken-factorial (dec n)) 0) ;; <- BUG HERE!!
         :else (* n (broken-factorial (dec n)))))
 
 (pi/instrument `broken-factorial
                {:xform (comp (xf/take-until :err) (xf/take-last 5))})
 
 (broken-factorial 10)
-;; Execution error (ExceptionInfo) at user/broken-factorial.
-;; Something bad has happened!!
+;; Execution error (ArithmeticException) at user/broken-factorial.
+;; Divide by zero
 
 (pm/log-for `broken-factorial)
 ;=> [{:args (3), :ret 6}
 ;    {:args (4), :ret 24}
 ;    {:args (5), :ret 120}
 ;    {:args (6), :ret 720}
-;    {:args (7), :err #error {:cause "Something bad has happened!!" ...}}]
+;    {:args (7), :err #error {:cause "Divide by zero" ...}}]
 ```
 
 ## Table of Contents
@@ -748,8 +747,7 @@ actually caused an error especially when you are debugging a recursive function:
 ```clojure
 (defn broken-factorial [n]
   (cond (= n 0) 1
-        (= n 5) (* (broken-factorial (dec n))
-                   (throw (ex-info "Something bad has happened!!" {})))
+        (= n 5) (/ (broken-factorial (dec n)) 0) ;; <- BUG HERE!!
         :else (* n (broken-factorial (dec n)))))
 
 ;; So far so good
@@ -758,8 +756,8 @@ actually caused an error especially when you are debugging a recursive function:
 
 ;; Boom!!
 (broken-factorial 7)
-;; Execution error (ExceptionInfo) at user/broken-factorial
-;; Something bad has happened!!
+;; Execution error (ArithmeticException) at user/broken-factorial.
+;; Divide by zero
 
 ;; Now let's look into it further!
 (pi/instrument `broken-factorial)
@@ -780,9 +778,9 @@ actually caused an error especially when you are debugging a recursive function:
 ;    {:args (2), :ret 2}
 ;    {:args (3), :ret 6}
 ;    {:args (4), :ret 24}
-;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}
-;    {:args (6), :err #error {:cause "Something bad has happened!!" ...}}
-;    {:args (7), :err #error {:cause "Something bad has happened!!" ...}}]"
+;    {:args (5), :err #error {:cause "Divide by zero" ...}}
+;    {:args (6), :err #error {:cause "Divide by zero" ...}}
+;    {:args (7), :err #error {:cause "Divide by zero" ...}}]"
 ```
 
 Moreover, transducer integration makes instrumentation way more powerful.
@@ -808,7 +806,7 @@ an error occurs:
 ;    {:args (2), :ret 2}
 ;    {:args (3), :ret 6}
 ;    {:args (4), :ret 24}
-;    {:args (5), :err #error {:cause "Something bad has happened!!" ...}}]
+;    {:args (5), :err #error {:cause "Divide by zero" ...}}]
 ```
 
 Also, you can even isolate the session for a function instrumentation
