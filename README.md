@@ -719,7 +719,18 @@ enables/disables logging for a specified var, respectively.
 (pm/log-for `f) ;=> nil
 ```
 
-Under the hood, instrumenting a function `f` replaces `f` with something like this:
+As you can see, the execution log for an instrumented function consists of two types
+of log items, ones for *entry* and ones for *exit*. An entry log item is logged
+immediately after the function gets called whereas an exit log item is logged
+immediately after the function either returns or throws.
+
+Both types of the log items contain the `:args` key that represents the arguments
+passed to the function when it's called. An exit log item contains an extra key:
+If the function exits normally, the corresponding exit log item will have the `:ret` key
+that holds the return value, and otherwise (i.e. if the function fails) the exit log
+item will have the `:err` key that holds the error object thrown in the function.
+
+Virtually, instrumenting a function `f` replaces `f` with something like this:
 
 ```clojure
 (fn [& args]
