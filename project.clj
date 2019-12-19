@@ -8,4 +8,5 @@
                  [net.cgrand/macrovich "0.2.1"]]
   :plugins [[lein-eftest "0.5.8"]]
   :eftest {:multithread? :vars}
-  :profiles {:1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}})
+  :profiles {:1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
+             :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}})
