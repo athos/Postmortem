@@ -7,4 +7,5 @@
                  [org.clojure/clojurescript "1.10.520" :scope "provided"]
                  [net.cgrand/macrovich "0.2.1"]]
   :plugins [[lein-eftest "0.5.8"]]
+  :eftest {:multithread? :vars}
   :profiles {:1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}})
