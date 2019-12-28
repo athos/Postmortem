@@ -25,6 +25,7 @@
 
 (deftest ^:eftest/synchronized basic-workflow-test
   (fib 5)
+  (is (= #{:add :add-result `fib} (pm/keys)))
   (is (not (pm/completed? :add)))
   (is (= [{:a 0 :b 1}
           {:a 1 :b 1}
@@ -66,6 +67,7 @@
   (is (every? pm/completed? [:add :add-result `fib]))
 
   (pm/reset-key! :add-result)
+  (is (= #{:add `fib} (pm/keys)))
   (is (= {:add [{:a 0 :b 1}
                 {:a 1 :b 1}
                 {:a 1 :b 2}
@@ -80,6 +82,7 @@
          (pm/logs)))
 
   (pm/reset-keys! #{:add `fib})
+  (is (= #{} (pm/keys)))
   (is (= {} (pm/logs))))
 
 ;; Assert this function definition compiles

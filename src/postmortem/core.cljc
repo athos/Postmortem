@@ -1,5 +1,5 @@
 (ns postmortem.core
-  (:refer-clojure :exclude [reset!])
+  (:refer-clojure :exclude [keys reset!])
   (:require [clojure.core :as c]
             #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
@@ -121,6 +121,14 @@
   ([session]
    (assert (session? session) "Invalid session specified")
    (logs* session)))
+
+(defn keys
+  "Returns all the log entry keys that the session contains.
+  If session is ommited, the keys will be pulled from the current session."
+  ([] (keys (current-session)))
+  ([session]
+   (assert (session? session) "Invalid session specified")
+   (set (proto/-keys session))))
 
 (defn reset-key!
   "Resets log entry for the specified key.
