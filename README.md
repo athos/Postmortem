@@ -66,7 +66,7 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
 - [Usage](#usage)
   - [Basic usage](#basic-usage)
     - [`spy>>` / `log-for`](#spy--log-for)
-    - [`reset-key!` / `completed?`](#reset-key--completed)
+    - [`reset-key!` / `completed?` / `keys`](#reset-key--completed--keys)
     - [`logs` / `reset!`](#logs--reset)
     - [`spy>`](#spy)
     - [`dump`](#dump)
@@ -151,7 +151,7 @@ thus entry keys can also be used as a handy way to collect and group log data:
 ;=> [2 4 6]
 ```
 
-#### `reset-key!` / `completed?`
+#### `reset-key!` / `completed?` / `keys`
 
 To clear the logged data at the log entry `<key>`, call `(reset-key! <key>)`:
 
@@ -202,6 +202,21 @@ You can check if a log entry has been completed using `(completed? <key>)`:
 
 (pm/reset-key! :barbaz)
 (pm/completed? :barbaz)
+;=> false
+```
+
+If you want to know what log entry keys have been logged so far without completing
+any log entry, `keys` suits your desire:
+
+```clojure
+(pm/spy>> :bazqux 10)
+(pm/spy>> :quxquux 20)
+
+(pm/keys)
+;=> #{:bazqux :quxquux}
+(pm/completed? :bazqux)
+;=> false
+(pm/completed? :quxquux)
 ;=> false
 ```
 

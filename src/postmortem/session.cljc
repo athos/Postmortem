@@ -63,6 +63,8 @@
   proto/ILogStorage
   (-add-item! [this key xform' item]
     (set! logs (enqueue! logs key xform xform' item)))
+  (-keys [this]
+    (keys logs))
   (-logs [this]
     (collect-logs logs (keys logs)))
   (-logs [this keys]
@@ -84,6 +86,7 @@
     proto/ISession
     proto/ILogStorage
     (-add-item! [this key xform item])
+    (-keys [this])
     (-logs [this] {})
     (-logs [this keys] {})
     (-reset! [this])
@@ -102,6 +105,9 @@
          (-add-item! [this key xform' item]
            (with-lock lock
              (proto/-add-item! session key xform' item)))
+         (-keys [this]
+           (with-lock lock
+             (proto/-keys session)))
          (-logs [this]
            (with-lock lock
              (proto/-logs session)))

@@ -5,6 +5,7 @@
 
 (defprotocol ILogStorage
   (-add-item! [this id xform item])
+  (-keys [this])
   (-logs [this] [this keys])
   (-reset! [this] [this keys]))
 
