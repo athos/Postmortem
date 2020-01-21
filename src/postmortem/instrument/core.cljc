@@ -23,7 +23,10 @@
   (let [{:keys [raw wrapped]} (get @instrumented-vars v)
         current @v
         to-wrapped (if (= wrapped current) raw current)]
-    (when (fn? to-wrapped)
+    (when (or (fn? to-wrapped)
+              (instance? #?(:clj clojure.lang.MultiFn
+                            :cljs cljs.core.MultiFn)
+                         to-wrapped))
       (let [instrumented (logging-fn to-wrapped sym opts)]
         (swap! instrumented-vars assoc v
                {:raw to-wrapped :wrapped instrumented})
