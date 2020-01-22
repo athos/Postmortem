@@ -92,3 +92,61 @@
       (is (= nil (pm/log-for `g)))
       (is (= nil (pm/log-for `h)))
       (pi/unstrument))))
+
+(defmulti eval* :type)
+(defmethod eval* :literal [{:keys [val]}]
+  val)
+(defmethod eval* :add [{:keys [lhs rhs]}]
+  (+ (eval* lhs) (eval* rhs)))
+(defmethod eval* :mul [{:keys [lhs rhs]}]
+  (* (eval* lhs) (eval* rhs)))
+
+(def ast
+  {:type :add
+   :lhs {:type :mul
+         :lhs {:type :literal :val 2}
+         :rhs {:type :literal :val 3}}
+   :rhs {:type :literal :val 1}})
+
+(deftest ^:eftest/synchronized multimethod-test
+  (is (= [`eval*] (pi/instrument `eval*)))
+  (eval* ast)
+  (is (= '[{:args ({:type :add
+                    :lhs {:type :mul
+                          :lhs {:type :literal :val 2}
+                          :rhs {:type :literal :val 3}}
+                    :rhs {:type :literal :val 1}})}
+           {:args ({:type :mul
+                    :lhs {:type :literal :val 2}
+                    :rhs {:type :literal :val 3}})}
+           {:args ({:type :literal :val 2})}
+           {:args ({:type :literal :val 2}) :ret 2}
+           {:args ({:type :literal :val 3})}
+           {:args ({:type :literal :val 3}) :ret 3}
+           {:args ({:type :mul
+                    :lhs {:type :literal :val 2}
+                    :rhs {:type :literal :val 3}})
+            :ret 6}
+           {:args ({:type :literal :val 1})}
+           {:args ({:type :literal :val 1}) :ret 1}
+           {:args ({:type :add
+                    :lhs {:type :mul
+                          :lhs {:type :literal :val 2}
+                          :rhs {:type :literal :val 3}}
+                    :rhs {:type :literal :val 1}})
+            :ret 7}]
+         (pm/log-for `eval*)))
+  (pm/reset-key! `eval*)
+
+  (pi/instrument `eval* {:xform (filter #(= :literal (apply :type (:args %))))})
+  (eval* ast)
+  (is (= '[{:args ({:type :literal :val 2})}
+           {:args ({:type :literal :val 2}) :ret 2}
+           {:args ({:type :literal :val 3})}
+           {:args ({:type :literal :val 3}) :ret 3}
+           {:args ({:type :literal :val 1})}
+           {:args ({:type :literal :val 1}) :ret 1}]
+         (pm/log-for `eval*)))
+
+  (is (= [`eval*] (pi/unstrument `eval*)))
+  (pm/reset!))
