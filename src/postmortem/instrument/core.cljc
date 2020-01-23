@@ -3,21 +3,33 @@
 
 (defonce instrumented-vars (atom {}))
 
-(defn- logging-fn [f fname {:keys [session xform]}]
-  (let [xform (or xform identity)]
-    (fn [& args]
-      (let [session (or session (pm/current-session))]
-        (pm/spy>> session fname xform {:args args})
-        (let [thrown (volatile! nil)
-              ret (try
-                    (apply f args)
-                    (catch #?(:clj Throwable :cljs :default) t
-                      (vreset! thrown t)))]
-          (if @thrown
-            (do (pm/spy>> session fname xform {:args args :err @thrown})
-                (throw @thrown))
-            (do (pm/spy>> session fname xform {:args args :ret ret})
-                ret)))))))
+(def ^:private ^:dynamic *depth* 0)
+
+(defn- logging-fn [f fname {:keys [session xform with-depth]}]
+  (let [xform (or xform identity)
+        sess (if session (constantly session) pm/current-session)
+        log-item (if with-depth
+                   #(assoc % :depth *depth*)
+                   identity)
+        save #(pm/spy>> (sess) fname xform (log-item %))
+        f (fn [args]
+            (save {:args args})
+            (let [thrown (volatile! nil)
+                  ret (try
+                        (apply f args)
+                        (catch #?(:clj Throwable :cljs :default) t
+                          (vreset! thrown t)))]
+              (if @thrown
+                (do (save {:args args :err @thrown})
+                    (throw @thrown))
+                (do (save {:args args :ret ret})
+                    ret))))]
+    (if with-depth
+      (fn [& args]
+        (binding [*depth* (inc *depth*)]
+          (f args)))
+      (fn [& args]
+        (f args)))))
 
 (defn instrument-1* [sym v opts]
   (let [{:keys [raw wrapped]} (get @instrumented-vars v)
