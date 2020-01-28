@@ -1,6 +1,6 @@
 # Postmortem
 [![Clojars Project](https://img.shields.io/clojars/v/postmortem.svg)](https://clojars.org/postmortem)
-[![CircleCI](https://circleci.com/gh/athos/postmortem.svg?style=shield)](https://circleci.com/gh/athos/postmortem)
+[![CircleCI](https://circleci.com/gh/athos/Postmortem.svg?style=shield)](https://circleci.com/gh/athos/Postmortem)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
 
 A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
