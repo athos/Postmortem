@@ -798,11 +798,45 @@ actually caused an error especially when you are debugging a recursive function:
 ;    {:args (7), :err #error {:cause "Divide by zero" ...}}]"
 ```
 
-Moreover, transducer integration makes instrumentation way more powerful.
-Specify the `{:xform <xform>}` option to attach a transducer `<xform>` when
-instrumenting a fuction. The example below shows how you can utilize a transducer
-to narrow down the execution log to the last few items until immediately before 
-an error occurs:
+There are a couple of options to specify for the `instrument` macro:
+
+- `:with-depth <bool>`: Attaches `:depth` to each execution log
+- `:xform <xform>`: Enables transducer integration
+- `:session <session>`: Specifies the session to use
+
+If you call `instrument` with the option `{:with-depth true}`,
+Postmortem automatically counts the current nesting level (depth) of
+function calls and attach it to each execution log:
+
+```clojure
+(defn fact [n]
+  (if (= n 0)
+    1
+    (* n (fact (dec n)))))
+
+(pi/instrument `fact {:with-depth true})
+
+(fact 5) ;=> 120
+(pm/log-for `fact)
+;=> [{:depth 1, :args (5)}
+;    {:depth 2, :args (4)}
+;    {:depth 3, :args (3)}
+;    {:depth 4, :args (2)}
+;    {:depth 5, :args (1)}
+;    {:depth 6, :args (0)}
+;    {:depth 6, :args (0), :ret 1}
+;    {:depth 5, :args (1), :ret 1}
+;    {:depth 4, :args (2), :ret 2}
+;    {:depth 3, :args (3), :ret 6}
+;    {:depth 2, :args (4), :ret 24}
+;    {:depth 1, :args (5), :ret 120}]
+```
+
+Calling `instrument` with the option `{:xform <xform>}` enables integration
+of transducers with the instrumentation facility, passing the transducer
+`<xform>` to the underlying logging operators behind instrumentation.
+The example below shows how you can utilize a transducer to narrow down
+the execution log to the last few items until immediately before an error occurs:
 
 ```clojure
 (require '[postmortem.core :as pm]

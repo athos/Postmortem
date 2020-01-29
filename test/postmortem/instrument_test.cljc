@@ -150,3 +150,35 @@
 
   (is (= [`eval*] (pi/unstrument `eval*)))
   (pm/reset!))
+
+(declare my-odd?)
+
+(defn my-even? [n]
+  (or (= n 0)
+      (my-odd? (dec n))))
+
+(defn my-odd? [n]
+  (and (not= n 0)
+       (my-even? (dec n))))
+
+(deftest ^:eftest/synchronized depth-test
+  (pi/instrument `[my-even? my-odd?] {:with-depth true})
+  (my-even? 5)
+
+  (is (= '[{:depth 1 :args (5)}
+           {:depth 3 :args (3)}
+           {:depth 5 :args (1)}
+           {:depth 5 :args (1) :ret false}
+           {:depth 3 :args (3) :ret false}
+           {:depth 1 :args (5) :ret false}]
+         (pm/log-for `my-even?)))
+  (is (= '[{:depth 2 :args (4)}
+           {:depth 4 :args (2)}
+           {:depth 6 :args (0)}
+           {:depth 6 :args (0) :ret false}
+           {:depth 4 :args (2) :ret false}
+           {:depth 2 :args (4) :ret false}]
+         (pm/log-for `my-odd?)))
+
+  (pi/unstrument `[my-even? my-odd?])
+  (pm/reset!))

@@ -12,7 +12,15 @@
   (defmacro instrument
     "Instruments the vars named by sym-or-syms, a symbol or collection of symbols.
   If a symbol identifies a namespace then all symbols in that namespace will be
-  enumerated. Returns a collection of syms naming the vars instrumented."
+  enumerated. Returns a collection of syms naming the vars instrumented.
+
+  The following options are available:
+
+    - `:with-depth <bool>`: If set to true, each execution log will be attached
+      with the current nesting level (depth) of function calls. Defaults to false.
+    - `:xform <xform>`: Pass transducer <xform> to the logging operators
+    - `:session <session>`: Use <session> to store the execution log
+  "
     ([sym-or-syms]
      (macros/case :clj `(clj/instrument ~sym-or-syms)
                   :cljs `(postmortem.instrument.cljs/instrument ~sym-or-syms)))
