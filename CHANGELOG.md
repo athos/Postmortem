@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 ### Added
 - Multimethod support for instrumentation ([#5](https://github.com/athos/postmortem/pull/5))
+- `instrument`'s new option for adding :depth to execution logs ([#6](https://github.com/athos/Postmortem/pull/6))
 
 ## [0.2.0] - 2020-01-04
 ### Added
