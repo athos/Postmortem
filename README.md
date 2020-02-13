@@ -67,7 +67,7 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
   - [Basic usage](#basic-usage)
     - [`spy>>` / `log-for`](#spy--log-for)
     - [`reset-key!` / `completed?` / `keys`](#reset-key--completed--keys)
-    - [`logs` / `reset!`](#logs--reset)
+    - [`logs` / `frequencies` / `reset!`](#logs--frequencies--reset)
     - [`spy>`](#spy)
     - [`dump`](#dump)
   - [Integration with transducers](#integration-with-transducers)
@@ -220,7 +220,7 @@ any log entry, `keys` suits your desire:
 ;=> false
 ```
 
-#### `logs` / `reset!`
+#### `logs` / `frequencies` / `reset!`
 
 You can also logs some data to more than one log entries at once.
 In such a case, `logs` is more useful to look into the whole log data
@@ -243,8 +243,34 @@ than just calling `log-for` for each log entry:
 ;    :sum [0 1 3 6 10 15]}
 ```
 
-Similarly, `reset!` is useful to clear the whole log data at a time, rathar than
-clearing each individual log entry one by one calling `reset-key!`:
+Alternatively, `frequencies` helps you grasp how many log items have been
+stored so far for each log entry key, without seeing the actual log data:
+
+```clojure
+(defn sum [n]
+  (loop [i 0 sum 0]
+    (pm/spy>> :i i)
+    (if (> i n)
+      sum
+      (recur (inc i)
+             (pm/spy>> :sum (+ i sum))))))
+
+(sum 5) ;=> 15
+
+(pm/frequencies)
+;=> {:i 7 :sum 6}
+
+;; As compared to:
+;; (pm/logs)
+;; => {:i [0 1 2 3 4 5 6],
+;      :sum [0 1 3 6 10 15]}
+```
+
+Note that once you call `frequencies`, all the log entries will be
+*completed*, as with the `logs` fn.
+
+Analogous to `logs`, `reset!` is useful to clear the whole log data at a time,
+rathar than clearing each individual log entry one by one calling `reset-key!`:
 
 ```clojure
 (pm/logs)
