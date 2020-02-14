@@ -1,5 +1,5 @@
 (ns postmortem.core
-  (:refer-clojure :exclude [keys reset!])
+  (:refer-clojure :exclude [frequencies keys reset!])
   (:require [clojure.core :as c]
             #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
@@ -129,6 +129,17 @@
   ([session]
    (assert (session? session) "Invalid session specified")
    (set (proto/-keys session))))
+
+(defn frequencies
+  "Returns a frequency map, which is a map of log entry key to a number
+  that indicates how many log items have been logged for the log entry.
+  If session is omitted, frequencies for the current session will be
+  returned."
+  ([] (frequencies (current-session)))
+  ([session]
+   (assert (session? session) "Invalid session specified")
+   (->> (logs* session)
+        (into {} (map (fn [[k xs]] [k (count xs)]))))))
 
 (defn reset-key!
   "Resets log entry for the specified key.
