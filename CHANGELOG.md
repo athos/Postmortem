@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Added
+- New `frequencies` fn ([#7](https://github.com/athos/Postmortem/pull/7))
 
 ## [0.3.0] - 2020-02-06
 ### Added
