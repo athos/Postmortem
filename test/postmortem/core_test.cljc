@@ -127,9 +127,9 @@
       (f2 100)
       (f1 10)
       (f2 200)
-      (= {:f [5 10]} (pm/logs sess1))
-      (= {:f [100 200]} (pm/logs sess2))
-      (= {} (pm/logs))))
+      (is (= {:f [5 10]} (pm/logs sess1)))
+      (is (= {:f [100 200]} (pm/logs sess2)))
+      (is (= {} (pm/logs)))))
   (testing "sessions can hold base transducer"
     (let [sess (pm/make-session (xf/take-last 3))
           f (fn [n]
