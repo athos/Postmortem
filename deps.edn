@@ -10,7 +10,7 @@
                   {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
            :test {:extra-paths ["test"]
                   :main-opts ["-m" "postmortem.test-runner"]}
-           :coverage {:extra-deps {cloverage {:mvn/version "1.1.2"}}
+           :coverage {:extra-deps {cloverage/cloverage {:mvn/version "1.1.2"}}
                       :main-opts ["-m" "cloverage.coverage"
                                   "-p" "src" "-s" "test" "--codecov"
                                   "--ns-exclude-regex" "postmortem.instrument(.cljs)?"]}
