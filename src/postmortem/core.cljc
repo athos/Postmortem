@@ -130,16 +130,21 @@
    (assert (session? session) "Invalid session specified")
    (set (proto/-keys session))))
 
-(defn frequencies
-  "Returns a frequency map, which is a map of log entry key to a number
+(defn stats
+  "Returns a stats map, which is a map of log entry key to a number
   that indicates how many log items have been logged for the log entry.
-  If session is omitted, frequencies for the current session will be
+  If session is omitted, stats for the current session will be
   returned."
-  ([] (frequencies (current-session)))
+  ([] (stats (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
    (->> (logs* session)
         (into {} (map (fn [[k xs]] [k (count xs)]))))))
+
+(defn frequencies
+  "Alias for `stats`. See the docstring for `stats` for details."
+  ([] (stats (current-session)))
+  ([session] (stats session)))
 
 (defn reset-key!
   "Resets log entry for the specified key.

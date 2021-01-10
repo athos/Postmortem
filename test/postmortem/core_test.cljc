@@ -65,7 +65,7 @@
                 {:n 0 :a 5 :b 8}]}
          (pm/logs)))
   (is (every? pm/completed? [:add :add-result `fib]))
-  (is (pm/frequencies) {:add 5, :add-result 6, `fib 6})
+  (is (pm/stats) {:add 5, :add-result 6, `fib 6})
 
   (pm/reset-key! :add-result)
   (is (= #{:add `fib} (pm/keys)))
@@ -85,7 +85,7 @@
   (pm/reset-keys! #{:add `fib})
   (is (= #{} (pm/keys)))
   (is (= {} (pm/logs)))
-  (is (= {} (pm/frequencies))))
+  (is (= {} (pm/stats))))
 
 ;; Assert this function definition compiles
 ;; cf. https://github.com/athos/postmortem/issues/2
