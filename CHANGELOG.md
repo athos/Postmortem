@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Added
+- New `stats` fn, a short alias for `frequencies` ([#9](https://github.com/athos/Postmortem/pull/9))
 
 ## [0.4.0] - 2020-02-25
 ### Added
