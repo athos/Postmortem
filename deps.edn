@@ -4,7 +4,7 @@
  :aliases {:check {:extra-deps
                    {athos/clj-check
                     {:git/url "https://github.com/athos/clj-check.git"
-                     :sha "a2f4d4cb6ef347bff420edb66629e41d530b9668"}}
+                     :sha "da6363a38b06d9b84976ed330a9544b69d3c4dee"}}
                    :main-opts ["-m" "clj-check.check"]}
            :cljs {:extra-deps
                   {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
