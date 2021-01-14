@@ -1,4 +1,4 @@
-(defproject postmortem "0.4.1"
+(defproject postmortem "0.4.2-SNAPSHOT"
   :description "A tiny value-oriented debugging tool for Clojure(Script), powered by transducers"
   :url "https://github.com/athos/Postmortem"
   :license {:name "Eclipse Public License"
