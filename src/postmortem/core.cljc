@@ -223,3 +223,12 @@
      `(spy> (locals) ~session ~key ~xform)))
 
   )
+
+(defn make-logger
+  ([] (make-logger identity))
+  ([xform]
+   (let [sess (make-session)]
+     (fn
+       ([] (log-for sess :key))
+       ([val]
+        (spy>> sess :key xform val))))))
