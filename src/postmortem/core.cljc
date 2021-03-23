@@ -225,6 +225,15 @@
   )
 
 (defn make-logger
+  "Creates a simple logger.
+
+  A simple logger is a function with two arities that closes over
+  an implicit session. If called with one argument, it acts like
+  `(spy>> :key <arg>)` on the implicit session. If called with
+  no argument, it acts like `(log-for :key)`.
+
+  If a transducer is passed as the optional argument, it will be attached
+  to the implicit session."
   ([] (make-logger identity))
   ([xform]
    (let [sess (make-session)]
