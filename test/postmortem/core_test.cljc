@@ -202,3 +202,13 @@
        (is (= 19999 (->> (pm/log-for sess :f) first :i)))))
 
    )
+
+(deftest logger-test
+  (let [f (pm/make-logger)]
+    (is (= [0 1 2 3 4] (map f (range 5))))
+    (is (= [0 1 2 3 4] (f)))
+    (is (= 42 (f 42)))
+    (is (= [0 1 2 3 4] (f))))
+  (let [f (pm/make-logger (filter even?))]
+    (is (= [0 1 2 3 4 5 6 7 8 9] (map f (range 10))))
+    (is (= [0 2 4 6 8] (f)))))
