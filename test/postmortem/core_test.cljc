@@ -212,3 +212,19 @@
   (let [f (pm/make-logger (filter even?))]
     (is (= [0 1 2 3 4 5 6 7 8 9] (map f (range 10))))
     (is (= [0 2 4 6 8] (f)))))
+
+(deftest multi-logger-test
+  (let [f (pm/make-multi-logger)]
+    (is (= 15
+           (loop [n 5 sum 0]
+             (if (= n 0)
+               sum
+               (recur (f :n (dec n)) (f :sum (+ sum n)))))))
+    (is (= {:n [4 3 2 1 0], :sum [5 9 12 14 15]} (f))))
+  (let [f (pm/make-multi-logger (take 3))]
+    (is (= 15
+           (loop [n 5 sum 0]
+             (if (= n 0)
+               sum
+               (recur (f :n (dec n)) (f :sum (+ sum n)))))))
+    (is (= {:n [4 3 2], :sum [5 9 12]} (f)))))

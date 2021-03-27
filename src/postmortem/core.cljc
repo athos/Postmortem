@@ -241,3 +241,20 @@
        ([] (log-for sess :key))
        ([val]
         (spy>> sess :key xform val))))))
+
+(defn make-multi-logger
+  "Creates a multi logger.
+  
+  A multi logger is a variant of the simple logger. If called with
+  two arguments, it acts like `(spy>> <arg1> <arg2>)` on the implicit
+  session. If called with no argument, it acts like `(logs)`.
+
+  If a transducer is passed as the optional argument, it will be attached
+  to the implicit session."
+  ([] (make-multi-logger identity))
+  ([xform]
+   (let [sess (make-session)]
+     (fn
+       ([] (logs sess))
+       ([key val]
+        (spy>> sess key xform val))))))
