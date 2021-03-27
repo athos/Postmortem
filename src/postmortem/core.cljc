@@ -247,7 +247,8 @@
   
   A multi logger is a variant of the simple logger. If called with
   two arguments, it acts like `(spy>> <arg1> <arg2>)` on the implicit
-  session. If called with no argument, it acts like `(logs)`.
+  session. If called with one argument, it acts like (log-for <arg>)`.
+  If called with no argument, it acts like `(logs)`.
 
   If a transducer is passed as the optional argument, it will be attached
   to the implicit session."
@@ -256,5 +257,6 @@
    (let [sess (make-session)]
      (fn
        ([] (logs sess))
+       ([key] (log-for sess key))
        ([key val]
         (spy>> sess key xform val))))))
