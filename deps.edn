@@ -1,16 +1,16 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+ :deps {org.clojure/clojure {:mvn/version "1.10.3"}
         net.cgrand/macrovich {:mvn/version "0.2.1"}}
  :aliases {:check {:extra-deps
                    {athos/clj-check
                     {:git/url "https://github.com/athos/clj-check.git"
-                     :sha "da6363a38b06d9b84976ed330a9544b69d3c4dee"}}
+                     :sha "0ca84df1357d71429243b99908303f45a934654c"}}
                    :main-opts ["-m" "clj-check.check"]}
            :cljs {:extra-deps
-                  {org.clojure/clojurescript {:mvn/version "1.10.520"}}}
+                  {org.clojure/clojurescript {:mvn/version "1.10.773"}}}
            :test {:extra-paths ["test"]
                   :main-opts ["-m" "postmortem.test-runner"]}
-           :coverage {:extra-deps {cloverage/cloverage {:mvn/version "1.1.2"}}
+           :coverage {:extra-deps {cloverage/cloverage {:mvn/version "1.2.2"}}
                       :main-opts ["-m" "cloverage.coverage"
                                   "-p" "src" "-s" "test" "--codecov"
                                   "--ns-exclude-regex" "postmortem.instrument(.cljs)?"]}
