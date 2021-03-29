@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Added
+- Simple logger implemented around one-shot session ([#11](https://github.com/athos/Postmortem/pull/11)
 
 ## [0.4.1] - 2021-01-14
 ### Added
