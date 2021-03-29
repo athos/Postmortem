@@ -756,6 +756,23 @@ it will behave as if you attached that transducer to the implicit session:
 (f) ;=> [1 4 9 16]
 ```
 
+A *multi logger* is a variant of the simple logger that has three arities, i.e.
+2-arg for `(spy>> <arg1> <arg2>)`, 1-arg for `(log-for <arg>)` and 0-arg for `(logs)`.
+
+```clojure
+(def f (pm/make-multi-logger))
+
+(loop [n 5, sum 0]
+  (if (= n 0)
+    sum
+    (recur (f :n (dec n)) (f :sum (+ sum n)))))
+;=> 15
+
+(f) ;=> {:n [4 3 2 1 0], :sum [5 9 12 14 15]}
+(f :n) ;=> [4 3 2 1 0]
+(f :sum) ;=> [5 9 12 14 15]
+```
+
 ### Instrumentation
 
 Postmortem has one more powerful feature: instrumentation. It looks like clojure.spec's
