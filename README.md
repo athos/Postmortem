@@ -76,6 +76,7 @@ A tiny value-oriented debugging tool for Clojure(Script), powered by transducers
     - [Attaching a transducer](#attaching-a-transducer)
     - [`void-session`](#void-session)
     - [`make-unsafe-session`](#make-unsafe-session)
+  - [Simple logger](#simple-logger)
   - [Instrumentation](#instrumentation)
 - [Related works](#related-works)
 
@@ -718,6 +719,59 @@ thread safety and performance.
 ```
 
 In ClojureScript, `make-session` is completely identical to `make-unsafe-session`.
+
+### Simple logger
+
+Postmortem 0.5.0+ provides a new feature, *simple loggers*. A simple logger
+essentially works like `spy>>` and `log-for`, but offers a more simplified API
+for common use cases.
+
+A simple logger is implemented as a function with two arities that closes over
+an implicit session:
+
+```clojure
+(def f (pm/make-logger))
+
+(f 1)
+(f 2)
+(f 3)
+(f 4)
+(f) ;=> [1 2 3 4]
+```
+
+As you may see, if a simple logger is called with one argument, it acts like
+`(spy>> :key <argument>)` on the implicit session whereas if called with no
+argument, it acts like `(log-for :key)`.
+
+If you create a simple logger by passing an transducer as the optional argument,
+it will behave as if you attached that transducer to the implicit session:
+
+```clojure
+(def f (pm/make-logger (map #(* % %))))
+
+(f 1)
+(f 2)
+(f 3)
+(f 4)
+(f) ;=> [1 4 9 16]
+```
+
+A *multi logger* is a variant of the simple logger that has three arities, i.e.
+2-arg for `(spy>> <arg1> <arg2>)`, 1-arg for `(log-for <arg>)` and 0-arg for `(logs)`.
+
+```clojure
+(def f (pm/make-multi-logger))
+
+(loop [n 5, sum 0]
+  (if (= n 0)
+    sum
+    (recur (f :n (dec n)) (f :sum (+ sum n)))))
+;=> 15
+
+(f) ;=> {:n [4 3 2 1 0], :sum [5 9 12 14 15]}
+(f :n) ;=> [4 3 2 1 0]
+(f :sum) ;=> [5 9 12 14 15]
+```
 
 ### Instrumentation
 

@@ -223,3 +223,40 @@
      `(spy> (locals) ~session ~key ~xform)))
 
   )
+
+(defn make-logger
+  "Creates a simple logger.
+
+  A simple logger is a function with two arities that closes over
+  an implicit session. If called with one argument, it acts like
+  `(spy>> :key <arg>)` on the implicit session. If called with
+  no argument, it acts like `(log-for :key)`.
+
+  If a transducer is passed as the optional argument, it will be attached
+  to the implicit session."
+  ([] (make-logger identity))
+  ([xform]
+   (let [sess (make-session)]
+     (fn
+       ([] (log-for sess :key))
+       ([val]
+        (spy>> sess :key xform val))))))
+
+(defn make-multi-logger
+  "Creates a multi logger.
+  
+  A multi logger is a variant of the simple logger. If called with
+  two arguments, it acts like `(spy>> <arg1> <arg2>)` on the implicit
+  session. If called with one argument, it acts like (log-for <arg>)`.
+  If called with no argument, it acts like `(logs)`.
+
+  If a transducer is passed as the optional argument, it will be attached
+  to the implicit session."
+  ([] (make-multi-logger identity))
+  ([xform]
+   (let [sess (make-session)]
+     (fn
+       ([] (logs sess))
+       ([key] (log-for sess key))
+       ([key val]
+        (spy>> sess key xform val))))))
