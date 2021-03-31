@@ -3,7 +3,7 @@
 ![build](https://github.com/athos/Postmortem/workflows/build/badge.svg)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
 
-A tiny data-oriented debugging tool for Clojure(Script), powered by transducers
+A tiny data-oriented debugging tool for Clojure(Script), empowered by transducers
 
 ## Features
 
