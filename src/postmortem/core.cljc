@@ -42,6 +42,15 @@
   (let [session (session/void-session)]
     (fn [] session)))
 
+(defn indexed
+  ([session] (indexed session #(array-map :id %1 :val %2)))
+  ([session f]
+   (session/indexed session f)))
+
+(defn make-indexed-session
+  ([] (indexed (make-session)))
+  ([f] (indexed (make-session) f)))
+
 (def ^:dynamic *current-session*
   "Dynamic var bound to the current session. Don't use this directly, call
   (current-session) instead."
