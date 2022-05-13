@@ -190,6 +190,41 @@
       (is (= "" (with-out-str (f 1) (f 2) (f 3))))
       (is (= "" (with-out-str (pm/logs sess)))))))
 
+(deftest indexed-session-test
+  (testing "indexed session logs items with auto-incremental index"
+    (let [sess (pm/make-indexed-session)]
+      (pm/spy>> sess :foo identity 100)
+      (pm/spy>> sess :bar identity 101)
+      (pm/spy>> sess :foo identity 102)
+      (is (= {:foo [{:id 0 :val 100}
+                    {:id 2 :val 102}]
+              :bar [{:id 1 :val 101}]}
+             (pm/logs sess)))))
+  (testing "indexed session accepts an optional fn that specifies how to attach the given index to the item"
+    (let [sess (pm/make-indexed-session vector)]
+      (pm/spy>> sess :foo identity 100)
+      (pm/spy>> sess :bar identity 101)
+      (pm/spy>> sess :foo identity 102)
+      (is (= {:foo [[0 100] [2 102]] :bar [[1 101]]}
+             (pm/logs sess)))))
+  (testing "calling reset! on an indexed session resets the index"
+    (let [sess (pm/make-indexed-session)]
+      (pm/spy>> sess :foo identity 100)
+      (pm/spy>> sess :foo identity 101)
+      (is (= [{:id 0 :val 100} {:id 1 :val 101}]
+             (pm/log-for sess :foo)))
+      (pm/reset-key! sess :foo)
+      (pm/spy>> sess :foo identity 102)
+      (pm/spy>> sess :foo identity 103)
+      (is (= [{:id 2 :val 102} {:id 3 :val 103}]
+             (pm/log-for sess :foo)))
+      (pm/reset! sess)
+      (is (= {} (pm/logs sess)))
+      (pm/spy>> sess :foo identity 104)
+      (pm/spy>> sess :foo identity 105)
+      (is (= [{:id 0 :val 104} {:id 1 :val 105}]
+             (pm/log-for sess :foo))))))
+
 #?(:clj
 
    (deftest ^:eftest/synchronized synchronization-test
