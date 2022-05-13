@@ -43,11 +43,22 @@
     (fn [] session)))
 
 (defn indexed
+  "Creates an indexed session based on the given session.
+  An indexed session manages an auto-incremental index and attaches it to each
+  log item. How the session attaches the index can be specified by a function f
+  passed as an optional argument. The function takes two arguments, the index
+  and the log item, and returns a new log item. The default function is
+  `(fn [id item] {:id id :val item})`."
+  {:added "0.5.1"}
   ([session] (indexed session #(array-map :id %1 :val %2)))
   ([session f]
    (session/indexed session f)))
 
 (defn make-indexed-session
+  "Creates and returns a new indexed session.
+  Equivalent to `(indexed (make-session))` or `(indexed (make-session) f)`.
+  See the docstring for `indexed` for details."
+  {:added "0.5.1"}
   ([] (indexed (make-session)))
   ([f] (indexed (make-session) f)))
 
