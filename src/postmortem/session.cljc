@@ -96,6 +96,33 @@
     (-complete! [this])
     (-complete! [this keys])))
 
+(defn indexed [session f]
+  (let [id (atom -1)]
+    (reify
+      proto/ISession
+      proto/ILogStorage
+      (-add-item! [_ key xform item]
+        (proto/-add-item! session key xform (f (swap! id inc) item)))
+      (-keys [_]
+        (proto/-keys session))
+      (-logs [_]
+        (proto/-logs session))
+      (-logs [_ keys]
+        (proto/-logs session keys))
+      (-reset! [_]
+        (proto/-reset! session)
+        (reset! id -1)
+        nil)
+      (-reset! [_ keys]
+        (proto/-reset! session keys))
+      proto/ICompletable
+      (-completed? [_ key]
+        (proto/-completed? session key))
+      (-complete! [_]
+        (proto/-complete! session))
+      (-complete! [_ keys]
+        (proto/-complete! session keys)))))
+
 #?(:clj
    (defn synchronized [session]
      (let [^ReentrantLock lock (ReentrantLock.)]

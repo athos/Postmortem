@@ -75,6 +75,7 @@ A tiny data-oriented debugging tool for Clojure(Script), empowered by transducer
     - [Handling sessions](#handling-sessions)
     - [Attaching a transducer](#attaching-a-transducer)
     - [`void-session`](#void-session)
+    - [Indexed sessions](#indexed-sessions)
     - [`make-unsafe-session`](#make-unsafe-session)
   - [Simple logger](#simple-logger)
   - [Instrumentation](#instrumentation)
@@ -669,6 +670,91 @@ Using it together with `with-session` disables logging temporarily:
 
 (pm/log-for :foo)
 ;=> [1 4]
+```
+
+#### Indexed sessions
+
+When dealing with multiple log entries, it is sometimes useful to have a sequential
+number (or index) for each log item throughout all the entries.
+
+An *indexed session* automatically adds an auto-increment index to each log item.
+To create a new indexed session, use `make-indexed-session`:
+
+```clojure
+(pm/set-current-session! (pm/make-indexed-session))
+
+(pm/spy>> :foo 100)
+(pm/spy>> :bar 101)
+(pm/spy>> :foo 102)
+
+(pm/logs)
+;=> {:foo [{:id 0 :val 100}
+;          {:id 2 :val 102}]
+;    :bar [{:id 1 :val 101}]}
+```
+
+Calling `reset!` on the indexed session resets the index:
+
+```clojure
+(pm/spy>> :foo 100)
+(pm/spy>> :foo 101)
+(pm/log-for :foo)
+;=> [{:id 0 :val 100} {:id 1 :val 101}]
+
+(pm/reset!)
+
+(pm/spy>> :foo 102)
+(pm/spy>> :foo 103)
+(pm/log-for :foo)
+;=> [{:id 0 :val 102} {:id 1 :val 103}]
+```
+
+`make-indexed-session` takes an optional function to specify how the indexed
+session will attach the index to each log item.
+
+The function must take two arguments, the index and the log item, and return
+a new log item. The default function is `(fn [id item] {:id id :val item})`.
+
+The example below shows how it takes effect:
+
+```clojure
+(pm/set-current-session!
+  (pm/make-indexed-session (fn [id item] [id item])))
+
+(pm/spy>> :foo :a)
+(pm/spy>> :foo :b)
+(pm/spy>> :foo :c)
+(pm/log-for :foo)
+;=> [[0 :a] [1 :b] [2 :c]]
+
+(pm/set-current-session!
+  (pm/make-indexed-session #(assoc %2 :i %1)))
+
+(pm/spy>> :point {:x 100 :y 100})
+(pm/spy>> :point {:x 200 :y 200})
+(pm/spy>> :point {:x 300 :y 300})
+(pm/log-for :point)
+;=> [{:i 0 :x 100 :y 100}
+;    {:i 1 :x 200 :y 200}
+;    {:i 2 :x 300 :y 300}]
+```
+
+The `indexed` function is another way to create an indexed session.
+`(indexed <session>)` creates a new indexed session based on another session.
+In fact, `(make-indexed-session)` is equivalent to `(indexed (make-session))`.
+
+It's especially useful to make an session with base transducer into an indexed session:
+
+```clojure
+(pm/set-current-session!
+  (pm/indexed (pm/make-session (take-while #(< (:id %) 3)))))
+
+(doseq [v [:a :b :c :d :e]]
+  (pm/spy>> :foo v))
+(pm/log-for :foo)
+;=> [{:id 0 :val :a}
+;    {:id 1 :val :b}
+;    {:id 2 :val :c}]
 ```
 
 #### `make-unsafe-session`
