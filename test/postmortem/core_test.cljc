@@ -238,6 +238,24 @@
 
    )
 
+(deftest merged-logs-test
+  (pm/with-session (pm/make-indexed-session)
+    (pm/spy>> :foo :a)
+    (pm/spy>> :bar :b)
+    (pm/spy>> :foo :c)
+    (is (= [{:id 0 :val :a}
+            {:id 1 :val :b}
+            {:id 2 :val :c}]
+           (sort-by :id (pm/merged-logs)))))
+  (pm/with-session (pm/make-indexed-session)
+    (pm/spy>> :foo :a)
+    (pm/spy>> :bar :b)
+    (pm/spy>> :foo :c)
+    (is (= [{:id 0 :key :foo :val :a}
+            {:id 1 :key :bar :val :b}
+            {:id 2 :key :foo :val :c}]
+           (sort-by :id (pm/merged-logs #(assoc %2 :key %1)))))))
+
 (deftest logger-test
   (let [f (pm/make-logger)]
     (is (= [0 1 2 3 4] (map f (range 5))))

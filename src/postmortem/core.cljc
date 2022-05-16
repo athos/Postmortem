@@ -142,6 +142,19 @@
    (assert (session? session) "Invalid session specified")
    (logs* session)))
 
+(defn merged-logs
+  "Merges all the log entries into a single vector.
+  This function optionally takes a function as an argument to specify how to
+  handle each log entry key. The function must take the log entry key and
+  the log item, and return a new log item. The default function is
+  `(fn [key item] item)`."
+  {:added "0.5.1"}
+  ([] (merged-logs (fn [_key val] val)))
+  ([f] (merged-logs (current-session) f))
+  ([session f]
+   (into [] (mapcat (fn [[k v]] (map (partial f k) v)))
+         (logs* session))))
+
 (defn keys
   "Returns all the log entry keys that the session contains.
   If session is omitted, the keys will be pulled from the current session."
