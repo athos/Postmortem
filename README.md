@@ -272,11 +272,11 @@ Note that once you call `stats`, all the log entries will be
 *completed*, as with the `logs` fn.
 
 For those who are using older versions (<= 0.4.0), `pm/stats` is the new name
-for `pm/frequencies` added in 0.4.1. They can be used totally interchangeablly.
+for `pm/frequencies` added in 0.4.1. They can be used totally interchangeably.
 Now `pm/stats` is recommended for primary use.
 
 Analogous to `logs`, `reset!` is useful to clear the whole log data at a time,
-rathar than clearing each individual log entry one by one calling `reset-key!`:
+rather than clearing each individual log entry one by one calling `reset-key!`:
 
 ```clojure
 (pm/logs)
@@ -628,10 +628,10 @@ And for case 2, this
 (pm/dump :key (take 5))
 ```
 
-is equavalent to:
+is equivalent to:
 
 ```clojure
-(pm/set-current-sesion! (pm/make-session))
+(pm/set-current-session! (pm/make-session))
 
 (pm/dump :key (comp (drop 5) (take 5)))
 ```
@@ -663,7 +663,7 @@ Using it together with `with-session` disables logging temporarily:
 (pm/set-current-session! (pm/make-session))
 
 (pm/spy>> :foo 1)
-(pm/with-sesion (pm/void-session)
+(pm/with-session (pm/void-session)
   (pm/spy>> :foo 2)
   (pm/spy>> :foo 3))
 (pm/spy>> :foo 4)

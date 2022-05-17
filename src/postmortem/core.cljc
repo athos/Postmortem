@@ -15,7 +15,7 @@
 
 (defn make-unsafe-session
   "Creates and returns a new thread-unsafe session.
-  Updates to a thread-unsafe session won't be synchronized among mulithreads.
+  Updates to a thread-unsafe session won't be synchronized among multithreads.
   If all updates to a session need to be synchronized, use make-session instead.
   In ClojureScript, make-unsafe-session is exactly the same as make-session."
   ([] (make-unsafe-session identity))
@@ -144,7 +144,7 @@
 
 (defn keys
   "Returns all the log entry keys that the session contains.
-  If session is ommited, the keys will be pulled from the current session."
+  If session is omitted, the keys will be pulled from the current session."
   ([] (keys (current-session)))
   ([session]
    (assert (session? session) "Invalid session specified")
