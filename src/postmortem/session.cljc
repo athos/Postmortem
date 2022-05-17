@@ -61,40 +61,40 @@
 (deftype ThreadUnsafeSession [xform ^:volatile-mutable logs]
   proto/ISession
   proto/ILogStorage
-  (-add-item! [this key xform' item]
+  (-add-item! [_ key xform' item]
     (set! logs (enqueue! logs key xform xform' item)))
-  (-keys [this]
+  (-keys [_]
     (keys logs))
-  (-logs [this]
+  (-logs [_]
     (collect-logs logs (keys logs)))
-  (-logs [this keys]
+  (-logs [_ keys]
     (collect-logs logs keys))
-  (-reset! [this]
+  (-reset! [_]
     (set! logs {}))
-  (-reset! [this keys]
+  (-reset! [_ keys]
     (set! logs (apply dissoc logs keys)))
   proto/ICompletable
-  (-completed? [this key]
+  (-completed? [_ key]
     (-> logs (get key) (get :completed?)))
-  (-complete! [this]
+  (-complete! [_]
     (set! logs (complete-logs! logs (set (keys logs)))))
-  (-complete! [this keys]
+  (-complete! [_ keys]
     (set! logs (complete-logs! logs keys))))
 
 (defn void-session []
   (reify
     proto/ISession
     proto/ILogStorage
-    (-add-item! [this key xform item])
-    (-keys [this])
-    (-logs [this] {})
-    (-logs [this keys] {})
-    (-reset! [this])
-    (-reset! [this keys])
+    (-add-item! [_ _key _xform _item])
+    (-keys [_])
+    (-logs [_] {})
+    (-logs [_ _keys] {})
+    (-reset! [_])
+    (-reset! [_ _keys])
     proto/ICompletable
-    (-completed? [this key] true)
-    (-complete! [this])
-    (-complete! [this keys])))
+    (-completed? [_ _key] true)
+    (-complete! [_])
+    (-complete! [_ _keys])))
 
 (defn indexed [session f]
   (let [id (atom -1)]
@@ -129,31 +129,31 @@
        (reify
          proto/ISession
          proto/ILogStorage
-         (-add-item! [this key xform' item]
+         (-add-item! [_ key xform' item]
            (with-lock lock
              (proto/-add-item! session key xform' item)))
-         (-keys [this]
+         (-keys [_]
            (with-lock lock
              (proto/-keys session)))
-         (-logs [this]
+         (-logs [_]
            (with-lock lock
              (proto/-logs session)))
-         (-logs [this keys]
+         (-logs [_ keys]
            (with-lock lock
              (proto/-logs session keys)))
-         (-reset! [this]
+         (-reset! [_]
            (with-lock lock
              (proto/-reset! session)))
-         (-reset! [this keys]
+         (-reset! [_ keys]
            (with-lock lock
              (proto/-reset! session keys)))
          proto/ICompletable
-         (-completed? [this key]
+         (-completed? [_ key]
            (with-lock lock
              (proto/-completed? session key)))
-         (-complete! [this]
+         (-complete! [_]
            (with-lock lock
              (proto/-complete! session)))
-         (-complete! [this keys]
+         (-complete! [_ keys]
            (with-lock lock
              (proto/-complete! session keys)))))))

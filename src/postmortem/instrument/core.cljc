@@ -44,7 +44,7 @@
                {:raw to-wrapped :wrapped instrumented})
         instrumented))))
 
-(defn unstrument-1* [sym v]
+(defn unstrument-1* [_sym v]
   (when-let [{:keys [raw wrapped]} (get @instrumented-vars v)]
     (swap! instrumented-vars dissoc v)
     (let [current @v]
