@@ -2,7 +2,7 @@
   (:require #?@(:clj [[net.cgrand.macrovich :as macros]
                       [postmortem.instrument.clj :as clj]])
             ;; necessary to ensure for CLJS that ns is loaded at runtime
-            [postmortem.instrument.core :as instr])
+            postmortem.instrument.core)
   #?(:cljs (:require-macros [net.cgrand.macrovich :as macros]
                             postmortem.instrument.cljs
                             [postmortem.instrument :refer [instrument unstrument]])))

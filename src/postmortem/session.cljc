@@ -1,6 +1,6 @@
 (ns postmortem.session
   (:require [postmortem.protocols :as proto]
-            [postmortem.utils :refer [with-lock]])
+            #?(:clj [postmortem.utils :refer [with-lock]]))
   #?(:clj (:import [java.util.concurrent.locks ReentrantLock])))
 
 (defn- xf->rf

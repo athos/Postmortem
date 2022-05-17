@@ -1,9 +1,9 @@
 (ns postmortem.core
   (:refer-clojure :exclude [frequencies keys reset!])
   (:require [clojure.core :as c]
-            #?(:clj [net.cgrand.macrovich :as macros])
             [postmortem.protocols :as proto]
-            [postmortem.session :as session])
+            [postmortem.session :as session]
+            #?(:clj [net.cgrand.macrovich :as macros]))
   #?(:cljs
      (:require-macros [net.cgrand.macrovich :as macros]
                       [postmortem.core :refer [locals dump]])))

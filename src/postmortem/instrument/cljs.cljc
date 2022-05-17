@@ -1,8 +1,8 @@
 (ns postmortem.instrument.cljs
   (:require [cljs.analyzer.api :as ana]
             [clojure.string :as str]
-            #?(:clj [net.cgrand.macrovich :as macros])
-            [postmortem.instrument.core :as instr])
+            [postmortem.instrument.core :as instr]
+            #?(:clj [net.cgrand.macrovich :as macros]))
   #?(:cljs (:require-macros [net.cgrand.macrovich :as macros]
                             [postmortem.instrument.cljs :refer [instrument unstrument]])))
 

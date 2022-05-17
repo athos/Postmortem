@@ -1,6 +1,6 @@
 (ns postmortem.xforms-test
-  (:require [postmortem.xforms :as xf]
-            [clojure.test :refer [deftest are]]))
+  (:require [clojure.test :refer [are deftest]]
+            [postmortem.xforms :as xf]))
 
 (deftest take-until-test
   (are [xform coll expected]

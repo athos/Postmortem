@@ -1,6 +1,6 @@
 (ns postmortem.core-test
-  (:require [clojure.test :refer [deftest is are testing]]
-            [postmortem.core :as pm :refer [locals dump spy>>]]
+  (:require [clojure.test :refer [are deftest is testing]]
+            [postmortem.core :as pm :refer [dump locals spy>>]]
             [postmortem.xforms :as xf]))
 
 (deftest locals-test
