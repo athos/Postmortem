@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 ### Added
 - Indexed session ([#12](https://github.com/athos/Postmortem/pull/12))
+- `merged-logs` ([#13](https://github.com/athos/Postmortem/pull/13))
 
 ## [0.5.0] - 2021-03-31
 ### Added
