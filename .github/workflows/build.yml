@@ -31,8 +31,10 @@ jobs:
         clojure -A:check:test:cljs:coverage -P
     - name: Run check
       run: clojure -M:check:cljs
-    - name: Run tests for CLJ 1.10
+    - name: Run tests for CLJ 1.11
       run: clojure -M:test
+    - name: Run tests for CLJ 1.10
+      run: clojure -M:1.10:test
     - name: Run tests for CLJ 1.9
       run: clojure -M:1.9:test
     - name: Run tests for CLJ 1.8
