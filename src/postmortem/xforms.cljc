@@ -71,7 +71,7 @@
              (do (vreset! prev v)
                  (rf acc input)))))))))
 
-(defn- abs ^double [^double x]
+(defn- abs* ^double [^double x]
   #?(:clj (Math/abs x)
      :cljs (js/Math.abs x)))
 
@@ -87,7 +87,7 @@
           (let [p @prev
                 v (f input)]
             (if (or (= p ::none)
-                    (>= (abs (- v p)) interval))
+                    (>= (abs* (- v p)) interval))
               (do (vreset! prev v)
                   (rf acc input))
               acc))))))))
