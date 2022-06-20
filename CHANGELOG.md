@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file. This change
 - Indexed session ([#12](https://github.com/athos/Postmortem/pull/12))
 - `merged-logs` ([#13](https://github.com/athos/Postmortem/pull/13))
 
+### Fixed
+- Fix override warning on Clojure 1.11 ([#16](https://github.com/athos/Postmortem/pull/16))
+
 ## [0.5.0] - 2021-03-31
 ### Added
 - Simple logger implemented around one-shot session ([#11](https://github.com/athos/Postmortem/pull/11)
