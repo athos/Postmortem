@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [0.5.1] - 2022-06-21
 ### Added
 - Indexed session ([#12](https://github.com/athos/Postmortem/pull/12))
 - `merged-logs` ([#13](https://github.com/athos/Postmortem/pull/13))
@@ -33,7 +35,8 @@ All notable changes to this project will be documented in this file. This change
 ## [0.1.0] - 2019-12-09
 - First release
 
-[Unreleased]: https://github.com/athos/postmortem/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/athos/postmortem/compare/0.5.1...HEAD
+[0.5.1]: https://github.com/athos/postmortem/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/athos/postmortem/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/athos/postmortem/compare/0.4.0...0.4.1
 [0.4.0]: https://github.com/athos/postmortem/compare/0.3.0...0.4.0
