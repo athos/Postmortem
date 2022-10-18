@@ -8,14 +8,15 @@
   ;; to avoid using the locking macro, which is problematic in some environments (see CLJ-1472)
   (defmacro with-lock [lock & body]
     (macros/case
-      :clj
-      `(let [lock# ~lock]
-         (.lock lock#)
-         (try
-           ~@body
-           (finally
-             (.unlock lock#))))
+     :clj
+      #?(:bb
+         `(locking ~lock ~@body)
+         :clj
+         `(let [lock# ~lock]
+            (.lock lock#)
+            (try
+              ~@body
+              (finally
+                (.unlock lock#)))))
       :cljs
-      `(do ~@body)))
-
-  )
+      `(do ~@body))))
