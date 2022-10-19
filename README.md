@@ -11,7 +11,7 @@ A tiny data-oriented debugging tool for Clojure(Script), powered by transducers
   - Logs are just Clojure data, so you can use DataScript, REBL or whatever tools for more sophisticated log analysis
 - [Integration with transducers](#integration-with-transducers) enables various flexible logging strategies
 - [Instrumentation](#instrumentation) on vars makes it easier to debug functions without touching their code
-- Supports Clojure/ClojureScript/self-hosted ClojureScript
+- Supports most of Clojure platforms (namely, Clojure, ClojureScript, self-hosted ClojureScript and Babashka)
 - Possible to use for debugging multi-threaded programs
 
 ## Synopsis
@@ -85,6 +85,7 @@ A tiny data-oriented debugging tool for Clojure(Script), powered by transducers
 
 - Clojure 1.8+, or
 - ClojureScript 1.10.238+, or
+- Babashka v0.10.163+, or
 - Planck 2.24.0+, or
 - Lumo 1.10.1+
 
