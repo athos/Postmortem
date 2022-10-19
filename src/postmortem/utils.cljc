@@ -12,7 +12,7 @@
       #?(:bb
          `(locking ~lock ~@body)
          :clj
-         `(let [lock# ~lock]
+         `(let [^java.util.concurrent.locks.ReentrantLock lock# ~lock]
             (.lock lock#)
             (try
               ~@body
