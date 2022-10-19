@@ -12,10 +12,11 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '11'
-    - name: Setup Clojure CLI
-      uses: DeLaGuardo/setup-clojure@6.0
+    - name: Setup Clojure CLI & Babashka
+      uses: DeLaGuardo/setup-clojure@9.5
       with:
-        tools-deps: latest
+        cli: latest
+        bb: latest
     - name: Cache deps
       uses: actions/cache@v3
       with:
