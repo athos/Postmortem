@@ -1,7 +1,8 @@
 (ns postmortem.session
   (:require [postmortem.protocols :as proto]
             #?(:clj [postmortem.utils :refer [with-lock]]))
-  #?(:clj (:import [java.util.concurrent.locks ReentrantLock])))
+  #?@(:bb []
+      :clj ((:import [java.util.concurrent.locks ReentrantLock]))))
 
 (defn- xf->rf
   ([xform] (xf->rf xform conj))
@@ -123,37 +124,43 @@
       (-complete! [_ keys]
         (proto/-complete! session keys)))))
 
-#?(:clj
+#?(:cljs (do)
+   :default
+   (deftype SynchronizedSession [session lock]
+     proto/ISession
+     proto/ILogStorage
+     (-add-item! [_ key xform' item]
+       (with-lock lock
+         (proto/-add-item! session key xform' item)))
+     (-keys [_]
+       (with-lock lock
+         (proto/-keys session)))
+     (-logs [_]
+       (with-lock lock
+         (proto/-logs session)))
+     (-logs [_ keys]
+       (with-lock lock
+         (proto/-logs session keys)))
+     (-reset! [_]
+       (with-lock lock
+         (proto/-reset! session)))
+     (-reset! [_ keys]
+       (with-lock lock
+         (proto/-reset! session keys)))
+     proto/ICompletable
+     (-completed? [_ key]
+       (with-lock lock
+         (proto/-completed? session key)))
+     (-complete! [_]
+       (with-lock lock
+         (proto/-complete! session)))
+     (-complete! [_ keys]
+       (with-lock lock
+         (proto/-complete! session keys)))))
+
+#?(:bb
    (defn synchronized [session]
-     (let [^ReentrantLock lock (ReentrantLock.)]
-       (reify
-         proto/ISession
-         proto/ILogStorage
-         (-add-item! [_ key xform' item]
-           (with-lock lock
-             (proto/-add-item! session key xform' item)))
-         (-keys [_]
-           (with-lock lock
-             (proto/-keys session)))
-         (-logs [_]
-           (with-lock lock
-             (proto/-logs session)))
-         (-logs [_ keys]
-           (with-lock lock
-             (proto/-logs session keys)))
-         (-reset! [_]
-           (with-lock lock
-             (proto/-reset! session)))
-         (-reset! [_ keys]
-           (with-lock lock
-             (proto/-reset! session keys)))
-         proto/ICompletable
-         (-completed? [_ key]
-           (with-lock lock
-             (proto/-completed? session key)))
-         (-complete! [_]
-           (with-lock lock
-             (proto/-complete! session)))
-         (-complete! [_ keys]
-           (with-lock lock
-             (proto/-complete! session keys)))))))
+     (->SynchronizedSession session (Object.)))
+   :clj
+   (defn synchronized [session]
+     (->SynchronizedSession session (ReentrantLock.))))

@@ -11,7 +11,7 @@
 (defn session?
   "Returns true if x is a session."
   [x]
-  (satisfies? proto/ISession x))
+  (satisfies? #?(:bb proto/ILogStorage :default proto/ISession) x))
 
 (defn make-unsafe-session
   "Creates and returns a new thread-unsafe session.

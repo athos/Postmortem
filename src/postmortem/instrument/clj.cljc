@@ -2,10 +2,14 @@
   (:require [clojure.string :as str]
             [postmortem.instrument.core :as instr]
             [postmortem.utils :refer [with-lock]])
-  (:import [java.util.concurrent.locks ReentrantLock]))
+  #?@(:bb []
+      :clj ((:import [java.util.concurrent.locks ReentrantLock]))))
 
-(def ^:private ^ReentrantLock instrument-lock
-  (ReentrantLock.))
+#?(:bb
+   (def instrument-lock (Object.))
+   :clj
+   (def ^:private ^ReentrantLock instrument-lock
+     (ReentrantLock.)))
 
 (defn- collectionize [x]
   (if (symbol? x)
