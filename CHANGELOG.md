@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Added
+- Babashka support ([#17](https://github.com/athos/Postmortem/pull/17))
 
 ## [0.5.1] - 2022-06-21
 ### Added
