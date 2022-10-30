@@ -1,0 +1,43 @@
+{:customREPLCommandSnippets
+ [{:name "Show logs for instrumented function",
+   :key "postmortem-show-logs-for-instrumented-fn"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/log-for `$top-level-defined-symbol))"}
+  {:name "Print logs for instrumented function",
+   :key "postmortem-print-logs-for-instrumented-fns"
+   :snippet "(do (require 'clojure.pprint 'postmortem.core) (clojure.pprint/print-table [:args :ret]) (postmortem.core/log-for `$top-level-defined-symbol))"}
+  {:name "Show logs for current instrumented function",
+   :key "postmortem-show-logs-for-current-instrumented-fn"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/log-for `$current-fn))"}
+  {:name "Print logs for current instrumented function",
+   :key "postmortem-print-logs-for-current-instrumented-fn"
+   :snippet "(do (require 'clojure.pprint 'postmortem.core) (clojure.pprint/print-table [:depth :args :ret]) (postmortem.core/log-for `$current-fn))"}
+  {:name "Instrument current function",
+   :key "postmortem-instrument-current-fn"
+   :snippet "(do (require 'postmortem.instrument) (postmortem.instrument/instrument `$top-level-defined-symbol {:with-depth true}))"}
+  {:name "Instrument current namespace",
+   :key "postmortem-instrument-current-ns"
+   :snippet "(do (require 'postmortem.instrument) (postmortem.instrument/instrument '$ns {:with-depth true}))"}
+  {:name "Show logs for current key",
+   :key "postmortem-show-logs-for-current-key"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/log-for `$current-form))"},
+  {:name "Print logs for current key",
+   :key "postmortem-print-logs-for-current-key"
+   :snippet "(do (require 'clojure.pprint 'postmortem.core) (postmortem.core/log-for `$current-form))"},
+  {:name "Show all logs",
+   :key "postmortem-show-all-logs"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/logs))"}
+  {:name "Reset logs for current key",
+   :key "postmortem-reset-logs-for-current-key"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/reset-key! `$current-form))"}
+  {:name "Reset all logs",
+   :key "postmortem-reset-all-logs"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/reset!))"}
+  {:name "Show stats",
+   :key "postmortem-show-stats"
+   :snippet "(do (require 'postmortem.core) (postmortem.core/stats))"}
+  {:name "Unstrument current function",
+   :key "postmortem-unstrument-current-fn"
+   :snippet "(do (require 'postmortem.instrument) (postmortem.instrument/unstrument `$top-level-defined-symbol))"}
+  {:name "Unstrument all instrumented fns",
+   :key "postmortem-unstrument-all-instrumented-fns"
+   :snippet "(do (require 'postmortem.instrument) (postmortem.instrument/unstrument))"}]}
