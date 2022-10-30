@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>postmortem</name>
+  <description>A tiny data-oriented debugging tool for Clojure(Script), powered by transducers</description>
+  <url>https://github.com/athos/Postmortem</url>
+  <licenses>
+    <license>
+      <name>Eclipse Public License</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>athos</id>
+      <name>Shogo Ohta</name>
+    </developer>
+  </developers>
+  <scm>
+    <url>https://github.com/athos/Postmortem</url>
+    <connection>scm:git:git://github.com/athos/Postmortem.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/athos/Postmortem.git</developerConnection>
+  </scm>
+</project>
