@@ -3,11 +3,11 @@
 ![build](https://github.com/athos/Postmortem/workflows/build/badge.svg)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
 
-A tiny data-oriented debugging tool for Clojure(Script), powered by transducers
+A simple debug library for Clojure(Script) that features data-oriented logging and tracing
 
 ## Features
 
-- Postmortem strongly encourages data-oriented debugging approaches
+- Postmortem strongly encourages the data-oriented debugging approach
   - Logs are just Clojure data, so you can use DataScript, REBL or whatever tools for more sophisticated log analysis
 - [Integration with transducers](#integration-with-transducers) enables various flexible logging strategies
 - [Instrumentation](#instrumentation) on vars makes it easier to debug functions without touching their code

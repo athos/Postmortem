@@ -1,5 +1,5 @@
 (defproject postmortem "0.5.1"
-  :description "A tiny data-oriented debugging tool for Clojure(Script), powered by transducers"
+  :description "A simple debug library for Clojure(Script) that features data-oriented logging and tracing"
   :url "https://github.com/athos/Postmortem"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
