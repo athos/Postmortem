@@ -3,7 +3,7 @@
             [org.corfield.build :as bb]))
 
 (def lib 'postmortem/postmortem)
-(def version "0.5.2-SNAPSHOT")
+(def version "0.5.2")
 (def tag (b/git-process {:git-args "rev-parse HEAD"}))
 
 (defn clean [opts]
