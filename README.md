@@ -2,6 +2,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/postmortem.svg)](https://clojars.org/postmortem)
 ![build](https://github.com/athos/Postmortem/workflows/build/badge.svg)
 [![codecov](https://codecov.io/gh/athos/postmortem/branch/master/graph/badge.svg)](https://codecov.io/gh/athos/postmortem)
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://babashka.org)
 
 A simple debug library for Clojure(Script) that features data-oriented logging and tracing
 
