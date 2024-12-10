@@ -231,7 +231,6 @@
   ([session key xform x] (spy> x session key xform)))
 
 (macros/deftime
-
   (defmacro locals
     "Creates and returns a local environment map at the call site.
   A local environment map is a map of keyword representing each local name
@@ -255,6 +254,13 @@
     ([session key xform]
      `(spy> (locals) ~session ~key ~xform)))
 
+  (defmacro expr
+    "A simplified version of spy>>. Same as (spy>> '<expr> <expr>)."
+    {:added "0.5.3"}
+    ([e] `(expr ~e identity))
+    ([e xform] `(expr (current-session) ~e ~xform))
+    ([session e xform] `(spy> ~e ~session '~e ~xform)))
+
   )
 
 (defn make-logger
@@ -277,7 +283,7 @@
 
 (defn make-multi-logger
   "Creates a multi logger.
-  
+
   A multi logger is a variant of the simple logger. If called with
   two arguments, it acts like `(spy>> <arg1> <arg2>)` on the implicit
   session. If called with one argument, it acts like (log-for <arg>)`.

@@ -87,6 +87,16 @@
   (is (= {} (pm/logs)))
   (is (= {} (pm/stats))))
 
+(deftest ^:eftest/synchronized expr-test
+  (is (= 15
+         (loop [i 5, sum 0]
+           (if (zero? i)
+             sum
+             (recur (dec i) (pm/expr (+ i sum)))))))
+  (is (= [5 9 12 14 15]
+         (pm/log-for '(+ i sum))))
+  (pm/reset!))
+
 ;; Assert this function definition compiles
 ;; cf. https://github.com/athos/postmortem/issues/2
 (defn regression-2 [^long x]
